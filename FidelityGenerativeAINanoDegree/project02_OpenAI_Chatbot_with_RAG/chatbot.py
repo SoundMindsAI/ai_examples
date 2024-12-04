@@ -2,6 +2,8 @@
 A conversational AI chatbot using RAG (Retrieval Augmented Generation) with Wikipedia data.
 This implementation uses FAISS for efficient similarity search and vector storage,
 OpenAI's GPT-3.5-turbo for text generation, and Wikipedia as the knowledge source.
+
+See the README.md file for more details and usage instructions.
 """
 
 import os

@@ -2,6 +2,10 @@
 
 A conversational AI chatbot that uses Retrieval Augmented Generation (RAG) to answer questions about the history of artificial intelligence, using Wikipedia as its knowledge source.
 
+## Dataset and Use Case
+
+This chatbot specializes in the history of artificial intelligence by leveraging Wikipedia's comprehensive article on the subject. This specialization is particularly valuable for students, researchers, and technology enthusiasts who want to understand AI's historical development, key milestones, and influential figures. The RAG implementation ensures that responses include the most current information about AI history, including recent developments and awards that traditional language models might not cover. By focusing on a specific, well-documented topic, the chatbot can provide more accurate and detailed responses than a general-purpose AI system.
+
 ## Features
 
 - Uses FAISS for efficient similarity search and vector storage
