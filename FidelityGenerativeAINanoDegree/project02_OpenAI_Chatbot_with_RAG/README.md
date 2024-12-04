@@ -70,6 +70,10 @@ Here are questions about events that occurred after GPT-3.5-turbo's training cut
 
 1. "Who won the 2024 Nobel Prizes for their contributions to artificial intelligence, and what specific achievements were recognized?"
 
+2. "who were the recipients of the '2024 Nobel Prizes'"
+
+3. "Who awarded the Nobel Prizes in AI in 2024?"
+
 These questions demonstrate how RAG keeps the model's knowledge current by incorporating recent information from the Wikipedia article.
 
 ## Dependencies
