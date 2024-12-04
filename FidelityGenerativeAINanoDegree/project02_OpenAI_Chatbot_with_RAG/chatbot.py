@@ -16,17 +16,20 @@ from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from openai import RateLimitError
 
-# Load environment variables
+# Load environment variables from .env file
 load_dotenv()
 
 def retry_with_exponential_backoff(
     func,
-    max_retries=10,  # Increased max retries
-    initial_delay=10,  # Increased initial delay
-    exponential_base=2,
-    error_types=(RateLimitError, Exception)
+    max_retries=10,    # Maximum number of retry attempts
+    initial_delay=10,  # Base delay in seconds
+    exponential_base=2,  # Multiplier for exponential backoff
+    error_types=(RateLimitError, Exception)  # Errors to catch and retry
 ):
-    """Retry a function with exponential backoff."""
+    """
+    A decorator that implements exponential backoff retry logic.
+    Retries the decorated function on failure, with increasing delays between attempts.
+    """
     
     def wrapper(*args, **kwargs):
         delay = initial_delay
@@ -39,7 +42,7 @@ def retry_with_exponential_backoff(
                     raise e
                 
                 if isinstance(e, RateLimitError):
-                    wait_time = delay * 3  # Triple the delay for rate limits
+                    wait_time = delay * 3  # Extended delay for rate limits
                 else:
                     wait_time = delay
                     
@@ -54,18 +57,21 @@ def retry_with_exponential_backoff(
 
 @retry_with_exponential_backoff
 def create_vector_store(text_content):
-    """Create a FAISS vector store from the text content."""
-    # Split text into smaller chunks
+    """
+    Creates a FAISS vector store from text content.
+    Splits text into chunks, generates embeddings, and builds a searchable index.
+    """
+    # Configure text splitting parameters for optimal context preservation
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,  # Increased for better context
-        chunk_overlap=100,  # Increased for better continuity
+        chunk_size=1000,    # Number of tokens per chunk
+        chunk_overlap=100,  # Overlap between chunks for context continuity
         length_function=len
     )
     chunks = text_splitter.split_text(text_content)
     
-    # Process chunks in smaller batches with longer delays
+    # Initialize embedding model and batch processing parameters
     embeddings = OpenAIEmbeddings()
-    batch_size = 5  # Increased batch size for efficiency
+    batch_size = 5  # Number of chunks to process in each batch
     all_embeddings = []
     
     print("Processing text chunks...")
@@ -75,12 +81,12 @@ def create_vector_store(text_content):
             batch_embeddings = embeddings.embed_documents(batch)
             all_embeddings.extend(batch_embeddings)
             print(f"Processed chunks {i + 1}-{min(i + batch_size, len(chunks))} of {len(chunks)}")
-            time.sleep(2)  # Increased delay between batches
+            time.sleep(2)  # Delay between batches to respect rate limits
         except Exception as e:
             print(f"Error processing batch: {str(e)}")
             raise
     
-    # Create FAISS index
+    # Build the FAISS index for similarity search
     vector_store = FAISS.from_texts(
         chunks,
         embeddings
@@ -89,12 +95,18 @@ def create_vector_store(text_content):
 
 @retry_with_exponential_backoff
 def get_qa_response(qa_chain, question, chat_history):
-    """Get response from QA chain with retry logic."""
+    """
+    Generates a response using the RAG-enhanced QA chain.
+    Incorporates chat history for context-aware responses.
+    """
     return qa_chain.invoke({"question": question, "chat_history": chat_history})
 
 @retry_with_exponential_backoff
 def get_base_model_response(llm, question):
-    """Get response from base GPT model without RAG."""
+    """
+    Generates a response using only the base language model.
+    Provides a baseline response without RAG enhancement.
+    """
     messages = [
         {"role": "system", "content": "You are a helpful assistant knowledgeable about AI history."},
         {"role": "user", "content": question}
@@ -103,37 +115,37 @@ def get_base_model_response(llm, question):
     return response.content
 
 def main():
-    # Check for OpenAI API key
+    # Verify API key configuration
     if not os.getenv("OPENAI_API_KEY"):
         print("Please set your OPENAI_API_KEY in the .env file")
         return
 
     try:
-        # Fetch Wikipedia content
+        # Initialize knowledge base from Wikipedia
         print("Fetching Wikipedia article...")
         article = wikipedia.page("History of artificial intelligence")
         content = article.content
-        wiki_url = article.url  # Get the Wikipedia URL
+        wiki_url = article.url  # Store source URL for attribution
 
-        # Create vector store
+        # Build vector store for similarity search
         print("Creating vector store...")
         vector_store = create_vector_store(content)
 
-        # Setup QA chain and base model
+        # Initialize language models and QA chain
         print("Setting up models...")
         llm = ChatOpenAI(
             model_name="gpt-3.5-turbo",
-            temperature=0,
-            request_timeout=60,
-            max_retries=5
+            temperature=0,  # Deterministic responses
+            request_timeout=60,  # Response timeout in seconds
+            max_retries=5    # Model-specific retry limit
         )
         qa_chain = ConversationalRetrievalChain.from_llm(
             llm,
-            vector_store.as_retriever(search_kwargs={"k": 3}),
+            vector_store.as_retriever(search_kwargs={"k": 3}),  # Retrieve top 3 relevant chunks
             return_source_documents=True
         )
 
-        # Interactive chat loop
+        # Start interactive chat session
         chat_history = []
         print("\nChat with AI History Bot (type 'quit' to exit)")
         print("----------------------------------------")
@@ -148,11 +160,13 @@ def main():
                 if question.lower() == 'quit':
                     break
 
+                # Generate and display base model response
                 print("\n🤖 Base GPT-3.5-turbo Response:")
                 print("-" * 40)
                 base_response = get_base_model_response(llm, question)
                 print(base_response)
                 
+                # Generate and display RAG-enhanced response
                 print("\n📚 RAG-Enhanced Response:")
                 print("-" * 40)
                 result = get_qa_response(qa_chain, question, chat_history)
