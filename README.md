@@ -1,6 +1,6 @@
 # GenAINanoDegree
 
-Theae projects are divided into 4 major project types.  
+These projects are divided into 4 major project types.  
 
 ## Project Types
 
