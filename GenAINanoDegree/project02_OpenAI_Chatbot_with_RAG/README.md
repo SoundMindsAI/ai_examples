@@ -24,11 +24,16 @@ This chatbot specializes in the history of artificial intelligence by leveraging
 ## Installation
 
 1. Clone the repository
-2. Install dependencies:
+2. Create and activate a conda environment:
+   ```bash
+   conda create -n ai-history-chatbot python=3.9
+   conda activate ai-history-chatbot
+   ```
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-3. Create a `.env` file in the project root and add your OpenAI API key:
+4. Create a `.env` file in the project root and add your OpenAI API key:
    ```
    OPENAI_API_KEY='your-api-key-here'
    ```
