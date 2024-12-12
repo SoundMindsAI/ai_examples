@@ -1,0 +1,77 @@
+Below is a detailed outline that may guide the project from dataset selection through training, culminating in a final report and presentation.
+
+Project Objective
+
+Goal: Fine-tune the Meta Llama 2 (7B) foundation model on a medical domain dataset. The resulting model should be capable of:
+	•	Understanding and using domain-specific vocabulary, concepts, and relationships common in medical literature and clinical documentation.
+	•	Generating contextually relevant, accurate, and helpful medical text responses.
+
+Dataset Selection
+
+Requirements for the Dataset:
+	•	Medical domain relevance: The dataset should contain medical, clinical, or healthcare-related text.
+	•	Unstructured text: Although structured data (like patient records or coded diagnoses) exist, the project aims for text-based training that can adapt the language model’s understanding of concepts and context. Unstructured text (e.g., research articles, clinical notes, medical summaries) is ideal.
+	•	Copyright-free / Public domain: The dataset must be free from copyright constraints to legally allow extensive fine-tuning.
+
+Recommended Dataset:
+PubMed Central (PMC) Open Access Subset
+	•	Description: The PMC Open Access Subset provides a large collection of medical and biological research articles. Many articles in this subset are distributed under open licenses (e.g., Creative Commons), making them suitable for research and model fine-tuning.
+	•	Content: Peer-reviewed biomedical and life sciences journal articles, including systematic reviews, case reports, and clinical studies.
+	•	Domain Coverage: Broad coverage of medical specializations: internal medicine, oncology, cardiology, infectious diseases, neurology, and more. This will expose the model to a wide range of terminology and clinical scenarios.
+	•	Licensing: The PMC Open Access Subset contains articles distributed under licenses that allow text mining, making it ideal for training a language model without standard copyright constraints.
+
+Alternative Options:
+	•	MIMIC-III or MIMIC-IV (if textual notes are used): While these datasets contain clinical notes, they come with privacy and usage constraints. They are not entirely copyright-free but rather made available under specific data use agreements. Not recommended here due to the complexity of access and licensing terms.
+	•	Public Domain Medical Textbooks (Project Gutenberg): Project Gutenberg may have older medical texts in the public domain. This could complement the more contemporary PMC dataset, though the language and concepts may be outdated.
+
+Conclusion on Dataset Selection:
+The PMC Open Access Subset stands as the strongest candidate due to its scale, diversity, and open-access licensing.
+
+Overview of Project Tasks
+	1.	Data Acquisition and Preprocessing:
+	•	Download and Filter Articles: Use scripts or AWS services (e.g., Amazon S3 for storage) to acquire the PMC Open Access Subset. Filter by license to ensure that only openly accessible texts are used.
+	•	Text Extraction: Convert XML or PDF articles into plain text. Ensure consistent formatting and remove metadata, boilerplate text, and references if desired.
+	•	Cleaning: Remove duplicates, non-informative text (e.g., boilerplate journal disclaimers), and possibly segment the text into more manageable chunks (e.g., paragraphs, sections).
+	2.	Data Preparation for Fine-Tuning:
+	•	Tokenization: Utilize the Llama 2 tokenizer to process the cleaned text.
+	•	Dataset Splitting: Create training, validation, and test splits.
+	•	Data Loading: Prepare the datasets in a format compatible with Amazon SageMaker training jobs and Hugging Face Transformers integration.
+	3.	Model Selection and Environment Setup:
+	•	Model: Meta Llama 2 (7B) foundation model, deployed and accessible through SageMaker JumpStart or a custom model endpoint.
+	•	Environment: Set up a SageMaker training job environment using GPU instances (e.g., ml.p3.2xlarge or similar) with appropriate storage and network configurations.
+	•	Frameworks: Use Hugging Face Transformers and Accelerate libraries, as well as AWS Deep Learning Containers.
+	4.	Fine-Tuning the Model:
+	•	Hyperparameter Tuning: Experiment with learning rate, batch size, and sequence length to ensure stable training and avoid catastrophic forgetting.
+	•	Regularization: Consider techniques such as early stopping and checkpointing to maintain model stability.
+	•	Mixed Precision Training: Use FP16 or BF16 for efficient training on GPUs.
+	•	Logging and Monitoring: Track training loss, perplexity, and validation metrics using Amazon CloudWatch and SageMaker Experiments.
+	5.	Evaluation and Validation:
+	•	Intrinsic Evaluation: Monitor perplexity and validation loss to judge the model’s language modeling improvement.
+	•	Extrinsic Evaluation: Craft domain-specific evaluation prompts (e.g., summarizing a medical article, explaining a medical condition) and assess the relevance, accuracy, and coherence of model outputs. Optionally, use a small panel of subject matter experts to provide qualitative feedback.
+	•	Comparison: Compare results against baseline Llama 2 performance on medical tasks. Observe improvements in domain-specific fluency and concept handling.
+	6.	Model Packaging and Deployment:
+	•	Model Artifacts: Save final model weights, tokenizer, and configuration. Store them in Amazon S3 for deployment.
+	•	Endpoint Setup: Deploy the model to a SageMaker endpoint for inference, enabling interactive queries and real-time predictions.
+	7.	Documentation and Reporting:
+	•	Report:
+	•	Document the process, including dataset handling, preprocessing steps, model configuration, and hyperparameters.
+	•	Discuss the training challenges encountered and solutions applied (e.g., dealing with large datasets, ensuring stable training).
+	•	Present results quantitatively (perplexity, validation metrics) and qualitatively (sample outputs).
+	•	Presentation:
+	•	Slides with an overview of objectives, methodology, tools used, results, and lessons learned.
+	•	Focus on the improvements in domain understanding demonstrated by the fine-tuned model.
+
+Deliverables
+	1.	Trained Model:
+	•	Fine-tuned Llama 2 (7B) model with improved medical domain capabilities.
+	•	Model artifacts (weights, tokenizer, config) stored in Amazon S3 for future inference and reference.
+	2.	Report:
+	•	Detailed write-up of the data sourcing, cleaning, and training process.
+	•	Explanation of hyperparameter tuning decisions and final configurations.
+	•	Analysis of results with before-and-after examples.
+	•	Discussion of challenges (e.g., data size, training stability) and how they were addressed.
+	3.	Presentation:
+	•	Slide deck summarizing the project from start to finish.
+	•	Key highlights of performance improvements, lessons learned, and recommendations for future work.
+
+By following this plan, you will create a specialized medical domain language model starting from Llama 2 (7B), trained using a publicly available, copyright-free dataset (PMC Open Access Subset), and documented thoroughly for reproducibility and knowledge sharing.
