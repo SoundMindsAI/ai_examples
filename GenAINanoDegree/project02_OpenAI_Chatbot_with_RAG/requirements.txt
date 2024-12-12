@@ -6,7 +6,8 @@ langchain-community>=0.0.10  # Community components including vector stores
 
 # Vector Storage and Search
 faiss-cpu>=1.7.4  # Facebook AI Similarity Search for efficient vector storage
-numpy>=1.24.1  # Required by FAISS for numerical operations
+numpy<2,>=1.26.4  # Required by FAISS and pandas for numerical operations
+pandas>=2.2.3  # Data manipulation and analysis
 
 # Text Processing and Tokenization
 tiktoken>=0.5.1  # OpenAI's tokenizer for text splitting

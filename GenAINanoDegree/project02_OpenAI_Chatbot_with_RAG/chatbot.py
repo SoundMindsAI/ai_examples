@@ -9,6 +9,7 @@ See the README.md file for more details and usage instructions.
 import os
 import sys
 import time
+import pandas as pd
 import wikipedia
 from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -56,6 +57,31 @@ def retry_with_exponential_backoff(
         return func(*args, **kwargs)
         
     return wrapper
+
+def load_wikipedia_dataset():
+    """
+    Loads Wikipedia article about AI history and creates a pandas DataFrame.
+    Returns a DataFrame with a 'text' column containing the content chunks.
+    """
+    try:
+        # Get the Wikipedia article content
+        wiki_content = wikipedia.page("History of artificial intelligence").content
+        
+        # Split content into manageable chunks
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200,
+            length_function=len
+        )
+        chunks = text_splitter.split_text(wiki_content)
+        
+        # Create DataFrame with text chunks
+        df = pd.DataFrame(chunks, columns=['text'])
+        return df
+        
+    except Exception as e:
+        print(f"Error loading Wikipedia content: {str(e)}")
+        sys.exit(1)
 
 @retry_with_exponential_backoff
 def create_vector_store(text_content):
@@ -123,15 +149,19 @@ def main():
         return
 
     try:
-        # Initialize knowledge base from Wikipedia
-        print("Fetching Wikipedia article...")
+        # Get Wikipedia article
+        print("Loading Wikipedia article...")
         article = wikipedia.page("History of artificial intelligence")
         content = article.content
         wiki_url = article.url  # Store source URL for attribution
 
+        # Load Wikipedia dataset into DataFrame
+        print("Loading dataset into DataFrame...")
+        df = load_wikipedia_dataset()
+
         # Build vector store for similarity search
         print("Creating vector store...")
-        vector_store = create_vector_store(content)
+        vector_store = create_vector_store('\n'.join(df['text'].tolist()))
 
         # Initialize language models and QA chain
         print("Setting up models...")

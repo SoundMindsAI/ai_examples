@@ -50,6 +50,9 @@ Type your questions about AI history and press Enter. Type 'quit' to exit the pr
 ## Technical Details
 
 - **Vector Store**: FAISS (Facebook AI Similarity Search) for efficient similarity search
+- **Data Processing**:
+  * Pandas DataFrame for structured data management
+  * Efficient text chunk organization and processing
 - **Embeddings**: OpenAI's text embedding model with batch processing
   * Batch size: 5 chunks per request
   * Automatic retry with exponential backoff
@@ -57,7 +60,7 @@ Type your questions about AI history and press Enter. Type 'quit' to exit the pr
 - **Text Splitting**: 
   * RecursiveCharacterTextSplitter
   * Chunk size: 1000 tokens
-  * Chunk overlap: 100 tokens
+  * Chunk overlap: 200 tokens
 - **Question Answering**: 
   * ConversationalRetrievalChain for context-aware responses
   * Retrieves 3 most relevant documents per query
@@ -92,6 +95,8 @@ These questions demonstrate how RAG keeps the model's knowledge current by incor
 - **langchain-openai**: OpenAI-specific components for LangChain (embeddings and chat models)
 - **langchain-community**: Community-maintained components including FAISS integration
 - **faiss-cpu**: Facebook AI Similarity Search for efficient vector storage and retrieval
+- **numpy**: Numerical computations (version <2, >=1.26.4 for compatibility)
+- **pandas**: Data manipulation and analysis for structured text processing
 - **python-dotenv**: Environment variable management for secure API key storage
 - **wikipedia**: Python library for fetching and parsing Wikipedia articles
 - **tiktoken**: OpenAI's tokenizer for text splitting and token counting
