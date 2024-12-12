@@ -26,8 +26,8 @@ This chatbot specializes in the history of artificial intelligence by leveraging
 1. Clone the repository
 2. Create and activate a conda environment:
    ```bash
-   conda create -n ai-history-chatbot python=3.9
-   conda activate ai-history-chatbot
+   conda create -n ai-chatbot python=3.9
+   conda activate ai-chatbot
    ```
 3. Install dependencies:
    ```bash
