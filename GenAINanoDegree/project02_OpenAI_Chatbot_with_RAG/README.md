@@ -91,3 +91,9 @@ These questions demonstrate how RAG keeps the model's knowledge current by incor
 - **wikipedia**: Python library for fetching and parsing Wikipedia articles
 - **tiktoken**: OpenAI's tokenizer for text splitting and token counting
 - **beautifulsoup4**: HTML parsing for cleaning Wikipedia content
+
+## Attribution
+
+- [How_to_handle_rate_limits.ipynb](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_handle_rate_limits.ipynb)
+- [retrying-and-exponential-backoff-smart-strategies-for-robust-software](https://www.pullrequest.com/blog/retrying-and-exponential-backoff-smart-strategies-for-robust-software/)
+- [exponential-backoff-decorator-in-python](https://medium.com/@suryasekhar/exponential-backoff-decorator-in-python-26ddf783aea0)
