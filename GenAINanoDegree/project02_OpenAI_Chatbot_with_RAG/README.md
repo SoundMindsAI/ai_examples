@@ -8,7 +8,7 @@ This chatbot specializes in the history of artificial intelligence by leveraging
 
 ## Why is this dataset appropriate?
 
-The base model used is the `gpt-3.5-turbo` model, and it's training end date is 2021. The dataset contains information about AI history before and after 2021. Therefore, as long as you ask the chatbot questions about AI history after 2021, only the RAG-enhanced responses will be able to accurately answer the questions, while the base model's responses will not be able to provide information about events that occurred after 2021.  This will demonstrate the power of RAG in providing accurate and up-to-date information about AI history.
+The base model used is the `gpt-3.5-turbo` model, and it's training end date is 2021. The dataset contains information about AI history before and after 2021. Therefore, as long as you ask the chatbot questions about AI history after 2021, only the RAG-enhanced responses will be able to accurately answer the questions, while the base model's responses will not be able to provide information about events that occurred after 2021.  This will demonstrate the power of RAG in providing accurate and up-to-date information about AI history.  To be clear, this demonstrates that the information in the wikipeedia dataset is more up-to-date than the information provided by the base model.
 
 ## Features
 
