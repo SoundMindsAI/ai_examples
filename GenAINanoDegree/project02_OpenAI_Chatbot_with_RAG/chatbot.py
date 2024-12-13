@@ -184,11 +184,19 @@ def main():
         print("You'll get two responses for each question:")
         print("1. Base GPT-3.5-turbo response (without RAG)")
         print("2. Enhanced response using RAG with Wikipedia data")
+        print("")
+        print("Try asking questions about events that occurred after GPT-3.5-turbo's")
+        print("training cutoff date (post-2021).")
+        print("")
+        print("For example, 'What significant breakthroughs or developments occurred in AI language models during 2023, particularly regarding GPT-4's capabilities and impact?'")
+        print("")
+        print("See the README.md file for more examples and usage instructions.")
         print("----------------------------------------")
+        print("")
 
         while True:
             try:
-                question = input("\nYou: ")
+                question = input("\nEnter your question: ")
                 if question.lower() == 'quit':
                     break
 

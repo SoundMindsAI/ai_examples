@@ -95,22 +95,16 @@ Here are questions about events that occurred after GPT-3.5-turbo's training cut
    2. In chemistry: David Baker, Demis Hassabis, and John Jumper for their advancements in protein folding predictions, particularly with AlphaFold.
    ```
 
-2. "Who were the recipients of the '2024 Nobel Prizes'?"
+2. "What significant breakthroughs or developments occurred in AI language models during 2023, particularly regarding GPT-4's capabilities and impact?"
 
    **Base Model Response:**
    ```
-   I'm sorry, but as of now, I do not have real-time information on the recipients of the 2024 Nobel Prizes. I recommend checking the official Nobel Prize website or reputable news sources for the most up-to-date information on the winners.
+   I'm sorry, but as of my last update, which was in 2022, I do not have information on the specific developments or breakthroughs that occurred in 2023 regarding AI language models like GPT-4. I recommend checking the latest research papers, news articles, or official announcements from organizations like OpenAI for the most up-to-date information on advancements in AI language models.
    ```
 
    **RAG-Enhanced Response:**
    ```
-   In 2024, the recipients of the Nobel Prizes for their contributions to artificial intelligence were:
-
-   1. Physics: John Hopfield for his work on physics-inspired Hopfield networks, and Geoffrey Hinton for foundational contributions to Boltzmann machines and deep learning.
-   
-   2. Chemistry: David Baker, Demis Hassabis, and John Jumper for their advancements in protein folding predictions, particularly with AlphaFold.
-
-   These individuals were recognized for their groundbreaking work in their respective fields related to artificial intelligence.
+   In 2023, a significant development in AI language models was the demonstration of ChatGPT4 passing an advanced biology test to convince Bill Gates of its capabilities. Microsoft Research also tested the model with a variety of tasks and concluded that it could be viewed as an early version of an artificial general intelligence system. This marked a notable advancement in the capabilities and potential impact of large language models like GPT-4.
    ```
 
 These examples demonstrate how RAG enables the chatbot to provide specific, up-to-date information about recent events that occurred after the base model's training cutoff date.
