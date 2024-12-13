@@ -82,11 +82,38 @@ Here are questions about events that occurred after GPT-3.5-turbo's training cut
 
 1. "Who won the 2024 Nobel Prizes for their contributions to artificial intelligence, and what specific achievements were recognized?"
 
-2. "who were the recipients of the '2024 Nobel Prizes'"
+   **Base Model Response:**
+   ```
+   I'm sorry, but I cannot provide real-time or future information as I do not have access to the internet to look up current events. However, as of my last update, I can tell you that the Nobel Prizes do not have a specific category for artificial intelligence. The closest related category would be the Nobel Prize in Economic Sciences, which has not been awarded specifically for contributions to AI as of my last update. I recommend checking the official Nobel Prize website or other reliable sources for the most up-to-date information on Nobel Prize winners.
+   ```
 
-3. "Who awarded the Nobel Prizes in AI in 2024?"
+   **RAG-Enhanced Response:**
+   ```
+   In 2024, the Nobel Prizes in recognition of groundbreaking contributions to artificial intelligence were awarded to the following individuals:
 
-These questions demonstrate how RAG keeps the model's knowledge current by incorporating recent information from the Wikipedia article.
+   1. In physics: John Hopfield for his work on physics-inspired Hopfield networks, and Geoffrey Hinton for foundational contributions to Boltzmann machines and deep learning.
+   2. In chemistry: David Baker, Demis Hassabis, and John Jumper for their advancements in protein folding predictions, particularly with AlphaFold.
+   ```
+
+2. "Who were the recipients of the '2024 Nobel Prizes'?"
+
+   **Base Model Response:**
+   ```
+   I'm sorry, but as of now, I do not have real-time information on the recipients of the 2024 Nobel Prizes. I recommend checking the official Nobel Prize website or reputable news sources for the most up-to-date information on the winners.
+   ```
+
+   **RAG-Enhanced Response:**
+   ```
+   In 2024, the recipients of the Nobel Prizes for their contributions to artificial intelligence were:
+
+   1. Physics: John Hopfield for his work on physics-inspired Hopfield networks, and Geoffrey Hinton for foundational contributions to Boltzmann machines and deep learning.
+   
+   2. Chemistry: David Baker, Demis Hassabis, and John Jumper for their advancements in protein folding predictions, particularly with AlphaFold.
+
+   These individuals were recognized for their groundbreaking work in their respective fields related to artificial intelligence.
+   ```
+
+These examples demonstrate how RAG enables the chatbot to provide specific, up-to-date information about recent events that occurred after the base model's training cutoff date.
 
 ## Dependencies
 
