@@ -6,6 +6,10 @@ A conversational AI chatbot that uses Retrieval Augmented Generation (RAG) to an
 
 This chatbot specializes in the history of artificial intelligence by leveraging Wikipedia's comprehensive article on the subject. This specialization is particularly valuable for students, researchers, and technology enthusiasts who want to understand AI's historical development, key milestones, and influential figures. The RAG implementation ensures that responses include the most current information about AI history, including recent developments and awards that traditional language models might not cover. By focusing on a specific, well-documented topic, the chatbot can provide more accurate and detailed responses than a general-purpose AI system.
 
+## Why is this dataset appropriate?
+
+The base model used is the `gpt-3.5-turbo` model, and it's training end date is 2021. The dataset contains information about AI history before and after 2021. Therefore, as long as you ask the chatbot questions about AI history after 2021, only the RAG-enhanced responses will be able to accurately answer the questions, while the base model's responses will not be able to provide information about events that occurred after 2021.  This will demonstrate the power of RAG in providing accurate and up-to-date information about AI history.
+
 ## Features
 
 - Uses FAISS for efficient similarity search and vector storage
