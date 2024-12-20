@@ -1,5 +1,5 @@
 import asyncio
-from scraper import WebScraper
+from firecrawl.scraper import WebScraper
 
 async def run_example():
     try:

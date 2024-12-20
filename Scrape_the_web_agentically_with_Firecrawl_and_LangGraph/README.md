@@ -165,15 +165,20 @@ To set up the project for development:
    ```
 3. Install in development mode:
    ```bash
-   pip install -e ".[dev]"
-   ```
-4. Copy `.env.example` to `.env` and configure as needed
-5. Run tests to verify setup:
-   ```bash
-   pytest
+   pip install -e .
    ```
 
-## Development Tools
+### Running the Example
+
+To run the example scraper:
+
+```bash
+python examples/example.py
+```
+
+This will start scraping from quotes.toscrape.com with a maximum depth of 2 levels.
+
+### Development Tools
 
 The project uses several tools to maintain code quality:
 

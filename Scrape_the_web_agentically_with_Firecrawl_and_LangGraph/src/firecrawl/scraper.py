@@ -87,7 +87,7 @@ class WebScraper:
         Initializes Playwright, launches a browser, and creates a new page.
         This should be called before starting the scraping process.
         """
-        self.browser_state.playwright = await async_playwright()
+        self.browser_state.playwright = await async_playwright().start()
         browser_config = {"headless": True}  # Configure browser options
         chromium = self.browser_state.playwright.chromium
         self.browser_state.browser = await chromium.launch(**browser_config)
