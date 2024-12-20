@@ -2,6 +2,8 @@
 
 A simple yet powerful web scraper built with Python and Playwright. This scraper can navigate through websites, extract content, and follow links while respecting depth limits and handling errors gracefully.
 
+- See the [inspired by code](https://github.com/trancethehuman/ai-workshop-code/blob/main/Scrape_the_web_agentically_with_Firecrawl_and_LangGraph.ipynb) for this project: 
+
 ## Overview
 
 This project implements a web scraping system that:
