@@ -14,3 +14,6 @@ These projects are divided into 4 major project types.
 
 Any variation on a project type is signified by a v2, v3, v4, ...
 This readme should document the variations and what is unique about each variation.
+
+## Interesting Links
+- https://github.com/trancethehuman/ai-workshop-code/tree/main
