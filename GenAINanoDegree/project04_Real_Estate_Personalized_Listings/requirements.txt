@@ -1,0 +1,19 @@
+# Core Dependencies
+langchain==0.0.305
+openai==0.28.1
+pydantic==1.10.21
+pytest==8.3.4
+sentence-transformers==3.4.1
+transformers==4.48.2
+chromadb==0.4.12
+jupyter==1.0.0
+tiktoken==0.4.0
+huggingface-hub==0.28.1
+
+# Additional Dependencies
+torch==2.2.2
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.6.0
+fastapi==0.99.1
+uvicorn==0.23.2
