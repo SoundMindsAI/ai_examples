@@ -22,6 +22,64 @@ The service consists of a FastAPI application that:
 2. Processes the query using a locally-hosted LLM
 3. Returns structured JSON data representing the understood query
 
+### System Architecture Diagram
+
+```mermaid
+graph TD
+    Client[Client] -->|HTTP Request| API[FastAPI Service]
+    API -->|Request| Cache[Redis Cache]
+    Cache -->|Cache Hit| API
+    Cache -->|Cache Miss| LLM[Large Language Model]
+    LLM -->|Generate Response| API
+    API -->|JSON Response| Client
+    
+    subgraph "Query Understanding Service"
+        API
+        Cache
+        LLM
+    end
+    
+    subgraph "Model Components"
+        LLM -->|Uses| Tokenizer[Tokenizer]
+        LLM -->|Loads| ModelWeights[Model Weights]
+        ModelWeights -->|Some layers on| GPU[MPS/GPU]
+        ModelWeights -->|Some layers on| Disk[Disk Storage]
+    end
+
+    style LLM fill:#f9f,stroke:#333,stroke-width:2px
+    style Cache fill:#bbf,stroke:#333,stroke-width:2px
+    style API fill:#bfb,stroke:#333,stroke-width:2px
+```
+
+### Request Processing Sequence
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant FastAPI as FastAPI Service
+    participant Cache as Redis Cache
+    participant LLM as Large Language Model
+    
+    Client->>FastAPI: POST /parse {"query": "red wooden sofa"}
+    FastAPI->>FastAPI: Parse request
+    
+    FastAPI->>Cache: Check cache for query
+    alt Cache Hit
+        Cache->>FastAPI: Return cached result
+    else Cache Miss
+        FastAPI->>LLM: Generate structured data
+        
+        LLM->>LLM: Tokenize input
+        LLM->>LLM: Load required model layers
+        LLM->>LLM: Generate response
+        
+        LLM->>FastAPI: Return structured data
+        FastAPI->>Cache: Store result in cache
+    end
+    
+    FastAPI->>Client: Return JSON response
+```
+
 ## Dependencies
 
 This project relies on several Python packages, each serving a specific purpose:
