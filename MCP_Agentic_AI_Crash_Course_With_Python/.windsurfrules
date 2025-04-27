@@ -1,0 +1,16 @@
+project:
+  name: MCP_Agentic_AI_Crash_Course_With_Python
+  description: Implementation of the Agentic AI Crash Course with Python using MCP
+  version: 0.1.0
+  pythonVersion: "3.13"
+  environments:
+    - local
+
+# ────────────────────────────────────────────────
+# Python Configuration
+# ────────────────────────────────────────────────
+
+python:
+  linting: true
+  formatting: true
+  testing: true
