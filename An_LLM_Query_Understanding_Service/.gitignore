@@ -1,0 +1,87 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Model caches and data
+.huggingface/
+hub/
+cache/
+models/
+*.bin
+*.pt
+*.pth
+*.h5
+
+# Logs
+logs/
+*.log
+
+# Local development configuration
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Redis data
+*.rdb
+dump.rdb
+
+# Temporary files
+tmp/
+temp/
+
+# Project specific
+# Custom model configs, if any
+model_config.json
