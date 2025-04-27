@@ -100,6 +100,8 @@ This project relies on several Python packages, each serving a specific purpose:
 
 - **Redis (>=5.0.0)**: An in-memory data structure store, used as a cache to store previously processed queries and their results. Redis significantly improves response times for repeated queries by eliminating the need to process them through the LLM again.
 
+- **Accelerate (>=0.21.0)**: Hugging Face's library for efficient model deployment, enabling advanced features like model offloading to disk, quantization, and optimized device placement. This is critical for running large models like Qwen2-7B on devices with limited memory by distributing model layers across GPU and disk storage.
+
 ## FastAPI in Detail
 
 FastAPI is a modern Python web framework for building APIs that offers several advantages:
@@ -146,7 +148,7 @@ In our application, Uvicorn:
 
 ### Prerequisites
 
-- Python 3.8+ (this project uses Python 3.13)
+- Python 3.8+ (this project uses Python 3.12)
 - pip or uv package manager
 
 ### Installation
@@ -157,7 +159,7 @@ git clone <repository-url>
 cd An_LLM_Query_Understanding_Service
 
 # Initialize the project with uv (if using uv)
-uv init --python 3.13
+uv init --python 3.12
 
 # Install dependencies
 pip install -r requirements.txt
@@ -486,6 +488,7 @@ Lists all Python package dependencies required by the application.
 # - transformers: Hugging Face library for LLMs
 # - python-json-logger: Structured JSON logging
 # - redis: Redis client for caching
+# - accelerate: Hugging Face's library for efficient model deployment
 ```
 
 #### `pyproject.toml`
