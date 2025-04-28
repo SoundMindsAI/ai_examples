@@ -6,6 +6,7 @@ This project implements a query understanding service powered by Large Language 
 
 - [Overview](#overview)
 - [Model Selection](#model-selection)
+- [System Prompt](#system-prompt)
 - [Key Features](#key-features)
 - [Architecture](#architecture)
   - [System Architecture Diagram](#system-architecture-diagram)
@@ -76,6 +77,36 @@ The smaller model provides several advantages:
 - **Cost Effectiveness**: Requires fewer resources in production
 
 Despite being smaller, Qwen2-0.5B-Instruct maintains excellent performance for the specific task of query understanding, demonstrating that carefully selecting the right-sized model for your use case can lead to dramatic performance improvements without sacrificing quality.
+
+### System Prompt
+
+The service uses a carefully crafted system prompt to guide the LLM in processing furniture queries:
+
+```
+You are a JSON processor for furniture queries. Your job is to extract structured data from search queries.
+
+IMPORTANT: Your ENTIRE response must be a SINGLE valid JSON object. Do not include ANY explanatory text.
+
+Extract these fields from the query:
+- item_type: The main furniture item (sofa, table, chair, etc.)
+- material: The material mentioned (wood, metal, plastic, etc.)
+- color: The color mentioned (red, blue, green, etc.)
+
+Omit a field if not specified in the query.
+
+Examples:
+Query: "black leather couch"
+Response: {"item_type": "couch", "material": "leather", "color": "black"}
+```
+
+This prompt is designed to:
+1. Define a clear role for the model ("JSON processor for furniture queries")
+2. Set strict output format requirements (valid JSON only)
+3. Specify exactly which fields to extract
+4. Provide clear examples of expected input/output
+5. Include instructions for handling missing information
+
+The prompt's specificity helps the smaller Qwen2-0.5B-Instruct model perform effectively on this specialized task.
 
 ## Key Features
 
