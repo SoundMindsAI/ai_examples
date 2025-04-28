@@ -2,6 +2,53 @@
 
 This project implements a query understanding service powered by Large Language Models (LLMs), following the tutorial at [softwaredoug.com](https://softwaredoug.com/blog/2025/04/08/llm-query-understand).
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+  - [System Architecture Diagram](#system-architecture-diagram)
+  - [Request Processing Flow](#request-processing-flow)
+- [Dependencies](#dependencies)
+  - [Core Dependencies](#core-dependencies)
+  - [Additional Dependencies](#additional-dependencies)
+- [FastAPI in Detail](#fastapi-in-detail)
+- [Uvicorn in Detail](#uvicorn-in-detail)
+- [Local Setup](#local-setup)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Running Locally](#running-locally)
+- [Docker Deployment](#docker-deployment)
+  - [Prerequisites](#prerequisites-1)
+  - [Using Docker Compose](#using-docker-compose)
+  - [Managing Docker Compose Containers](#managing-docker-compose-containers)
+  - [Building the Docker Image Manually](#building-the-docker-image-manually)
+  - [Managing Individual Docker Containers](#managing-individual-docker-containers)
+  - [Docker Startup Process](#docker-startup-process)
+  - [Docker Troubleshooting](#docker-troubleshooting)
+  - [Docker Image Optimization](#docker-image-optimization)
+- [Deployment to Kubernetes](#deployment-to-kubernetes)
+- [Startup Process](#startup-process)
+- [Troubleshooting](#troubleshooting)
+  - [Model Offloading Error](#model-offloading-error)
+  - [Other Common Issues](#other-common-issues)
+- [Debugging and Logging](#debugging-and-logging)
+  - [Logging Configuration](#logging-configuration)
+  - [Log Categories](#log-categories)
+  - [Performance Monitoring](#performance-monitoring)
+- [API Usage](#api-usage)
+  - [Root Endpoint](#root-endpoint)
+  - [Health Check Endpoint](#health-check-endpoint)
+  - [API Documentation Endpoints](#api-documentation-endpoints)
+  - [Query Understanding Endpoint](#query-understanding-endpoint)
+  - [Response Fields](#response-fields)
+- [Project Structure](#project-structure)
+- [Project Files in Detail](#project-files-in-detail)
+  - [Entry Point](#entry-point)
+  - [Core Components](#core-components)
+  - [Configuration Files](#configuration-files)
+- [Performance Considerations](#performance-considerations)
+
 ## Overview
 
 This service transforms unstructured search queries into structured data formats, enabling more accurate and useful search results. By leveraging open-source LLMs, the service parses natural language queries into JSON objects with specific fields relevant to the search domain.
@@ -51,7 +98,7 @@ graph TD
     style API fill:#bfb,stroke:#333,stroke-width:2px
 ```
 
-### Request Processing Sequence
+### Request Processing Flow
 
 ```mermaid
 sequenceDiagram
@@ -78,6 +125,86 @@ sequenceDiagram
     end
     
     FastAPI->>Client: Return JSON response
+```
+
+### Docker Workflow
+
+```mermaid
+graph LR
+    Dockerfile[Dockerfile] -->|Build| DockerImage[Docker Image]
+    DockerImage -->|Run| DockerContainer[Docker Container]
+    DockerContainer -->|Start| RunningContainer[Running Container]
+    RunningContainer -->|Stop| StoppedContainer[Stopped Container]
+    StoppedContainer -->|Remove| RemovedContainer[Removed Container]
+    
+    DockerCompose[Docker Compose] -->|Up| RunningContainer
+    DockerCompose -->|Down| StoppedContainer
+    DockerCompose -->|Exec| RunningContainer
+    
+    style Dockerfile fill:#f9f,stroke:#333,stroke-width:2px
+    style DockerImage fill:#bbf,stroke:#333,stroke-width:2px
+    style DockerContainer fill:#bfb,stroke:#333,stroke-width:2px
+    style RunningContainer fill:#cff,stroke:#333,stroke-width:2px
+    style StoppedContainer fill:#ffb,stroke:#333,stroke-width:2px
+    style RemovedContainer fill:#fbb,stroke:#333,stroke-width:2px
+```
+
+### Docker Compose Services
+
+```mermaid
+graph TB
+    User[User] -->|HTTP Request| Port8000[Port 8000]
+    Port8000 -->|Forwards| APIContainer[API Container]
+    APIContainer -->|Depends On| RedisContainer[Redis Container]
+    
+    subgraph "Docker Host"
+        subgraph "API Service"
+            APIContainer
+            Volume1[HuggingFace Cache Volume]
+            APIContainer --- Volume1
+        end
+        
+        subgraph "Redis Service"
+            RedisContainer
+            Volume2[Redis Data Volume]
+            RedisContainer --- Volume2
+        end
+    end
+    
+    APIContainer -->|Query Cache| RedisContainer
+    
+    style APIContainer fill:#bfb,stroke:#333,stroke-width:2px
+    style RedisContainer fill:#bbf,stroke:#333,stroke-width:2px
+    style Volume1 fill:#fbb,stroke:#333,stroke-width:2px
+    style Volume2 fill:#fbb,stroke:#333,stroke-width:2px
+```
+
+### Docker Container Architecture
+
+```mermaid
+graph TB
+    subgraph "API Container"
+        Python[Python Runtime] -->|Runs| Uvicorn[Uvicorn ASGI Server]
+        Uvicorn -->|Hosts| FastAPI[FastAPI Application]
+        FastAPI -->|Uses| LLM[LLM Service]
+        FastAPI -->|Uses| Cache[Cache Client]
+        LLM -->|Stores Models| Volume1[HuggingFace Cache Volume]
+    end
+    
+    subgraph "Redis Container"
+        Redis[Redis Server] -->|Stores Data| Volume2[Redis Data Volume]
+    end
+    
+    Cache -->|Connects To| Redis
+    
+    style Python fill:#bbf,stroke:#333,stroke-width:2px
+    style Uvicorn fill:#bfb,stroke:#333,stroke-width:2px
+    style FastAPI fill:#bfb,stroke:#333,stroke-width:2px
+    style LLM fill:#f9f,stroke:#333,stroke-width:2px
+    style Cache fill:#fbb,stroke:#333,stroke-width:2px
+    style Redis fill:#bbf,stroke:#333,stroke-width:2px
+    style Volume1 fill:#cff,stroke:#333,stroke-width:2px
+    style Volume2 fill:#cff,stroke:#333,stroke-width:2px
 ```
 
 ## Dependencies
@@ -132,7 +259,7 @@ Uvicorn is an ASGI (Asynchronous Server Gateway Interface) server implementation
 
 1. **ASGI Protocol Support**: Implements the ASGI specification, which is the asynchronous successor to WSGI, allowing for handling WebSockets, HTTP/2, and other protocols.
 
-2. **High Performance**: Built on uvloop (a fast drop-in replacement for asyncio's event loop) and httptools, making it one of the fastest Python servers available.
+2. **High Performance**: Built on uvloop and httptools, making it one of the fastest Python servers available. It handles the translation between HTTP requests and our application.
 
 3. **Reload Capability**: Offers automatic reloading during development when code changes are detected.
 
@@ -173,6 +300,123 @@ python main.py
 ```
 
 This will start the service at `http://0.0.0.0:8000` with automatic reloading enabled.
+
+## Docker Deployment
+
+You can also run the application using Docker, which simplifies deployment and ensures consistency across different environments.
+
+### Prerequisites
+
+- Docker and Docker Compose
+- NVIDIA Docker if using GPU (for CUDA support)
+
+### Using Docker Compose
+
+The easiest way to run the application is with Docker Compose, which automatically sets up both the API service and Redis for caching:
+
+```bash
+# Build and start the services
+docker compose up -d
+
+# View logs
+docker compose logs -f api
+```
+
+This sets up:
+- The Query Understanding API service on port 8000
+- Redis caching on port 6379
+- Persistent volumes for model cache and Redis data
+
+#### Managing Docker Compose Containers
+
+```bash
+# Stop the containers without removing them
+docker compose stop
+
+# Stop and remove containers, networks, and volumes
+docker compose down
+
+# Stop and remove containers, networks, volumes, AND images
+docker compose down --rmi all
+
+# Restart the service (useful after code changes)
+docker compose restart api
+```
+
+### Building the Docker Image Manually
+
+You can also build and run the Docker image directly:
+
+```bash
+# Build the image
+docker build -t llm-query-understanding .
+
+# Run the container
+docker run -p 8000:8000 --env REDIS_ENABLED=false llm-query-understanding
+```
+
+#### Managing Individual Docker Containers
+
+```bash
+# List running containers
+docker ps
+
+# Stop a container
+docker stop <container_id>
+
+# Remove a container
+docker rm <container_id>
+
+# Remove a container that's still running
+docker rm -f <container_id>
+```
+
+### Docker Startup Process
+
+When starting the container with `docker compose up`, the following sequence occurs:
+
+1. Docker builds the image if it doesn't exist or if `--build` is specified
+2. The Redis container starts first (due to the `depends_on` configuration)
+3. The API container starts, which follows the startup process described earlier:
+   - Python interpreter initializes
+   - Uvicorn server starts on port 8000
+   - FastAPI application loads
+   - LLM initializes (downloading model weights if needed)
+   - Cache connection is established with Redis
+
+The first startup can take several minutes as the LLM is downloaded and initialized. The model weights are cached in a persistent volume, so subsequent startups are faster.
+
+### Docker Troubleshooting
+
+Common issues when running with Docker:
+
+1. **Container doesn't start**:
+   - Check logs with `docker compose logs api`
+   - Ensure Docker has sufficient resources allocated (at least 16GB memory recommended)
+
+2. **Cannot connect to API**:
+   - Verify containers are running with `docker ps`
+   - Check if the port mapping is correct (8000:8000)
+   - Try accessing via `http://localhost:8000` directly
+
+3. **Redis connection errors**:
+   - Verify Redis container is running with `docker ps`
+   - Check if Redis service name matches the `REDIS_HOST` environment variable in docker-compose.yml
+
+4. **Model loading takes too long**:
+   - This is normal for the first run as the model is downloaded
+   - Check disk space to ensure there's enough for model storage (~14GB)
+   - Consider using a smaller model by modifying the `llm.py` file
+
+### Docker Image Optimization
+
+The Dockerfile is optimized for size and performance:
+- Uses the NVIDIA CUDA base image without unnecessary runtime components
+- Minimizes installed packages and cleans up apt cache to reduce image size
+- Avoids pip caching to significantly reduce size (saves up to 60% space)
+- Creates a dedicated volume for Hugging Face model cache
+
+## Deployment to Kubernetes
 
 ## Startup Process
 
@@ -320,6 +564,57 @@ This data can be extracted for monitoring, alerting, and performance optimizatio
 
 ## API Usage
 
+The service provides the following endpoints:
+
+### Root Endpoint
+
+```
+GET /
+```
+
+Returns basic service information and a list of available endpoints.
+
+Response:
+```json
+{
+  "service": "LLM Query Understanding Service",
+  "version": "1.0.0",
+  "endpoints": {
+    "/parse": "Parse a search query into structured data",
+    "/health": "Health check endpoint",
+    "/docs": "Swagger UI interactive API documentation",
+    "/redoc": "ReDoc API documentation"
+  }
+}
+```
+
+### Health Check Endpoint
+
+```
+GET /health
+```
+
+Provides a simple health check to verify the service is running.
+
+Response:
+```json
+{
+  "status": "ok"
+}
+```
+
+### API Documentation Endpoints
+
+```
+GET /docs
+```
+Interactive Swagger UI documentation for exploring and testing the API.
+
+```
+GET /redoc
+```
+Alternative ReDoc documentation with a different layout and presentation.
+
 ### Query Understanding Endpoint
 
 ```
@@ -403,6 +698,8 @@ An_LLM_Query_Understanding_Service/
 ├── main.py                         # Entry point
 ├── requirements.txt                # Dependencies
 ├── pyproject.toml                  # Project metadata
+├── Dockerfile                      # Docker image configuration
+├── docker-compose.yml              # Docker Compose configuration
 └── README.md                       # Documentation
 ```
 
@@ -499,6 +796,29 @@ Project metadata and build system configuration.
 # - Project name and version
 # - Python version requirement (>=3.12)
 # - Project description and readme
+```
+
+#### `Dockerfile`
+Configuration for building a Docker container for the application.
+
+```dockerfile
+# Key features:
+# - Optimized image size (based on nvidia/cuda:11.8.0-base)
+# - Minimal dependencies installation 
+# - No pip caching to reduce image size
+# - Default environment variables configuration
+# - Exposed port 8000
+```
+
+#### `docker-compose.yml`
+Docker Compose configuration for running the application with Redis.
+
+```yaml
+# Key features:
+# - Orchestrates API service and Redis cache
+# - Configures environment variables for Redis connection
+# - Manages persistent volumes for model cache and Redis data
+# - Sets up NVIDIA GPU access for the API service
 ```
 
 ### Performance Considerations

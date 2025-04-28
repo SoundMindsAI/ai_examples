@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, Body
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from time import perf_counter
@@ -6,6 +6,7 @@ import json
 import os
 import traceback
 from typing import Dict, Any
+from pydantic import BaseModel
 
 from llm_query_understand.llm import LargeLanguageModel
 from llm_query_understand.cache import QueryCache
@@ -63,6 +64,33 @@ cache = QueryCache()
 # Log when application is fully initialized
 logger.info(f"Service initialized in {perf_counter() - startup_time:.2f} seconds")
 
+# Define Pydantic models for request and response
+class QueryRequest(BaseModel):
+    """
+    Request model for query understanding
+    
+    Example:
+        ```json
+        {
+            "query": "red wooden sofa with armrests"
+        }
+        ```
+    """
+    query: str
+
+class ParsedQuery(BaseModel):
+    item_type: str = None
+    material: str = None
+    color: str = None
+
+class QueryResponse(BaseModel):
+    generation_time: float
+    parsed_query: ParsedQuery
+    query: str
+    cached: bool
+    total_time: float
+    cache_lookup_time: float = None
+
 @app.get("/")
 async def root():
     """Root endpoint that returns service information"""
@@ -72,7 +100,9 @@ async def root():
         "version": "1.0.0",
         "endpoints": {
             "/parse": "Parse a search query into structured data",
-            "/health": "Health check endpoint"
+            "/health": "Health check endpoint",
+            "/docs": "Swagger UI interactive API documentation",
+            "/redoc": "ReDoc API documentation"
         }
     }
 
@@ -82,31 +112,26 @@ async def health_check():
     logger.debug("Health check endpoint called")
     return {"status": "ok"}
 
-@app.post("/parse")
-async def query_understand(request: Request):
+@app.post("/parse", response_model=QueryResponse)
+async def query_understand(request: QueryRequest):
     """
     Parse a search query into structured data using an LLM
     
     The request should include a 'query' field with the text to parse.
     
     Example:
-        {"query": "red wooden sofa"}
+        ```json
+        {
+            "query": "red wooden sofa with armrests"
+        }
+        ```
     """
     request_id = f"req_{perf_counter():.0f}"
     logger.info(f"[{request_id}] Received parse request")
     start = perf_counter()
     
     try:
-        # Parse the request body
-        body = await request.json()
-        query = body.get("query")
-        
-        if not query:
-            logger.warning(f"[{request_id}] Missing 'query' field in request body")
-            return JSONResponse(
-                status_code=400,
-                content={"error": "Missing 'query' field in request"}
-            )
+        query = request.query
         
         logger.info(f"[{request_id}] Processing query: '{query}'")
         
@@ -120,7 +145,7 @@ async def query_understand(request: Request):
             cached_result["cached"] = True
             cached_result["cache_lookup_time"] = round(cache_time, 4)
             cached_result["total_time"] = round(perf_counter() - start, 4)
-            return JSONResponse(content=cached_result)
+            return cached_result
         
         logger.info(f"[{request_id}] Cache miss, generating response with LLM")
         
@@ -148,7 +173,8 @@ async def query_understand(request: Request):
                 "generation_time": round(generation_time, 2),
                 "parsed_query": parsed_query,
                 "query": query,
-                "cached": False
+                "cached": False,
+                "total_time": round(perf_counter() - start, 4)
             }
             
             # Store in cache for future use
@@ -159,31 +185,30 @@ async def query_understand(request: Request):
             if cache_success:
                 logger.debug(f"[{request_id}] Result cached successfully in {cache_store_time:.4f}s")
             
-            # Add total processing time to the result
-            result["total_time"] = round(perf_counter() - start, 4)
-            
-            return JSONResponse(content=result)
+            return result
             
         except json.JSONDecodeError as e:
             error_msg = f"Failed to parse JSON from LLM response: {str(e)}"
             logger.error(f"[{request_id}] {error_msg}")
             logger.error(f"[{request_id}] Problematic LLM response: {response}")
-            return JSONResponse(
-                status_code=500, 
-                content={
+            raise HTTPException(
+                status_code=500,
+                detail={
                     "error": "Failed to parse response from LLM",
                     "details": str(e),
                     "response": response
                 }
             )
+    except HTTPException:
+        raise
     except Exception as e:
         # Catch and log any unexpected errors
         error_trace = traceback.format_exc()
         logger.error(f"[{request_id}] Unexpected error processing request: {str(e)}")
         logger.error(f"[{request_id}] Traceback: {error_trace}")
-        return JSONResponse(
+        raise HTTPException(
             status_code=500,
-            content={
+            detail={
                 "error": "Internal server error",
                 "details": str(e)
             }
