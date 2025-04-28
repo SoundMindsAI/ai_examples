@@ -104,30 +104,19 @@ graph TD
     LLM -->|Generate Response| API
     API -->|JSON Response| Client
     
-    subgraph "Query Understanding Service"
-        API
-        Cache
-        LLM
-    end
-    
-    subgraph "Model Components"
-        LLM -->|Uses| Tokenizer[Tokenizer]
-        LLM -->|Loads| ModelWeights[Model Weights]
-        ModelWeights -->|Optimized for| CPU[CPU Inference]
-        ModelWeights -->|Uses| Quantization[Int8 Quantization]
-    end
+    LLM -->|Uses| Tokenizer[Tokenizer]
+    LLM -->|Loads| ModelWeights[Model Weights]
+    ModelWeights -->|Optimized for| CPU[CPU Inference]
+    ModelWeights -->|Uses| Quantization[Int8 Quantization]
 
-    style LLM fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style Cache fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style API fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style Client fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style Tokenizer fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style ModelWeights fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style CPU fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style Quantization fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    
-    style "Query Understanding Service" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style "Model Components" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style LLM fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style Cache fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style API fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style Client fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style Tokenizer fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style ModelWeights fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style CPU fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style Quantization fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
 ```
 
 ### Request Processing Flow
@@ -171,13 +160,13 @@ graph LR
     DockerCompose -->|Down| StoppedContainer
     DockerCompose -->|Exec| RunningContainer
     
-    style Dockerfile fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style DockerImage fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style DockerContainer fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style RunningContainer fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style StoppedContainer fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style RemovedContainer fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style DockerCompose fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
+    style Dockerfile fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style DockerImage fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style DockerContainer fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style RunningContainer fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style StoppedContainer fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style RemovedContainer fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style DockerCompose fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
 ```
 
 ### Docker Compose Services
@@ -187,64 +176,39 @@ graph TB
     User[User] -->|HTTP Request| Port8000[Port 8000]
     Port8000 -->|Forwards| APIContainer[API Container]
     APIContainer -->|Depends On| RedisContainer[Redis Container]
-    
-    subgraph "Docker Host"
-        subgraph "API Service"
-            APIContainer
-            Volume1[HuggingFace Cache Volume]
-            APIContainer --- Volume1
-        end
-        
-        subgraph "Redis Service"
-            RedisContainer
-            Volume2[Redis Data Volume]
-            RedisContainer --- Volume2
-        end
-    end
-    
     APIContainer -->|Query Cache| RedisContainer
     
-    style APIContainer fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style RedisContainer fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style Volume1 fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style Volume2 fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style User fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style Port8000 fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
+    APIContainer --- Volume1[HuggingFace Cache Volume]
+    RedisContainer --- Volume2[Redis Data Volume]
     
-    style "Docker Host" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style "API Service" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style "Redis Service" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style APIContainer fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style RedisContainer fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style Volume1 fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style Volume2 fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style User fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style Port8000 fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
 ```
 
 ### Docker Container Architecture
 
 ```mermaid
 graph TB
-    subgraph "API Container"
-        Python[Python Runtime] -->|Runs| Uvicorn[Uvicorn ASGI Server]
-        Uvicorn -->|Hosts| FastAPI[FastAPI Application]
-        FastAPI -->|Uses| LLM[LLM Service]
-        FastAPI -->|Uses| Cache[Cache Client]
-        LLM -->|Stores Models| Volume1[HuggingFace Cache Volume]
-    end
+    Python[Python Runtime] -->|Runs| Uvicorn[Uvicorn ASGI Server]
+    Uvicorn -->|Hosts| FastAPI[FastAPI Application]
+    FastAPI -->|Uses| LLM[LLM Service]
+    FastAPI -->|Uses| Cache[Cache Client]
+    LLM -->|Stores Models| Volume1[HuggingFace Cache Volume]
+    Cache -->|Connects To| Redis[Redis Server]
+    Redis -->|Stores Data| Volume2[Redis Data Volume]
     
-    subgraph "Redis Container"
-        Redis[Redis Server] -->|Stores Data| Volume2[Redis Data Volume]
-    end
-    
-    Cache -->|Connects To| Redis
-    
-    style Python fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style Uvicorn fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style FastAPI fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style LLM fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style Cache fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style Redis fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    style Volume1 fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
-    style Volume2 fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
-    
-    style "API Container" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style "Redis Container" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style Python fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style Uvicorn fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style FastAPI fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style LLM fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style Cache fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style Redis fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style Volume1 fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style Volume2 fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
 ```
 
 ## Dependencies
