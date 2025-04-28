@@ -126,9 +126,8 @@ graph TD
     style CPU fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
     style Quantization fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
     
-    classDef subgraphStyle fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    class "Query Understanding Service" subgraphStyle
-    class "Model Components" subgraphStyle
+    style "Query Understanding Service" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style "Model Components" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
 ```
 
 ### Request Processing Flow
@@ -178,6 +177,7 @@ graph LR
     style RunningContainer fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
     style StoppedContainer fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
     style RemovedContainer fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
+    style DockerCompose fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
 ```
 
 ### Docker Compose Services
@@ -208,6 +208,12 @@ graph TB
     style RedisContainer fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
     style Volume1 fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
     style Volume2 fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
+    style User fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
+    style Port8000 fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
+    
+    style "Docker Host" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style "API Service" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style "Redis Service" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
 ```
 
 ### Docker Container Architecture
@@ -236,6 +242,9 @@ graph TB
     style Redis fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
     style Volume1 fill:black,stroke:black,stroke-width:3px,color:white,font-weight:bold
     style Volume2 fill:white,stroke:black,stroke-width:3px,color:black,font-weight:bold
+    
+    style "API Container" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style "Redis Container" fill:transparent,stroke:black,stroke-width:2px,color:black,font-weight:bold
 ```
 
 ## Dependencies
