@@ -109,14 +109,14 @@ graph TD
     ModelWeights -->|Optimized for| CPU[CPU Inference]
     ModelWeights -->|Uses| Quantization[Int8 Quantization]
 
-    style LLM fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style Cache fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style API fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style Client fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style Tokenizer fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style ModelWeights fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style CPU fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style Quantization fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style LLM fill:#4285F4,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style Cache fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
+    style API fill:#34A853,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style Client fill:#EA4335,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style Tokenizer fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
+    style ModelWeights fill:#4285F4,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style CPU fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
+    style Quantization fill:#34A853,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
 ```
 
 ### Request Processing Flow
@@ -160,13 +160,13 @@ graph LR
     DockerCompose -->|Down| StoppedContainer
     DockerCompose -->|Exec| RunningContainer
     
-    style Dockerfile fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style DockerImage fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style DockerContainer fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style RunningContainer fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style StoppedContainer fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style RemovedContainer fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style DockerCompose fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
+    style Dockerfile fill:#4285F4,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style DockerImage fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
+    style DockerContainer fill:#34A853,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style RunningContainer fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
+    style StoppedContainer fill:#EA4335,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style RemovedContainer fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
+    style DockerCompose fill:#4285F4,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
 ```
 
 ### Docker Compose Services
@@ -181,12 +181,12 @@ graph TB
     APIContainer --- Volume1[HuggingFace Cache Volume]
     RedisContainer --- Volume2[Redis Data Volume]
     
-    style APIContainer fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style RedisContainer fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style Volume1 fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style Volume2 fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style User fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style Port8000 fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style APIContainer fill:#34A853,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style RedisContainer fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
+    style Volume1 fill:#4285F4,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style Volume2 fill:#EA4335,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style User fill:#4285F4,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style Port8000 fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
 ```
 
 ### Docker Container Architecture
@@ -201,14 +201,14 @@ graph TB
     Cache -->|Connects To| Redis[Redis Server]
     Redis -->|Stores Data| Volume2[Redis Data Volume]
     
-    style Python fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style Uvicorn fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style FastAPI fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style LLM fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style Cache fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style Redis fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
-    style Volume1 fill:black,stroke:black,stroke-width:2px,color:white,font-weight:bold
-    style Volume2 fill:white,stroke:black,stroke-width:2px,color:black,font-weight:bold
+    style Python fill:#4285F4,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style Uvicorn fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
+    style FastAPI fill:#34A853,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style LLM fill:#EA4335,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style Cache fill:#4285F4,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style Redis fill:#FBBC05,stroke:#000000,stroke-width:2px,color:black,font-weight:bold
+    style Volume1 fill:#34A853,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
+    style Volume2 fill:#EA4335,stroke:#ffffff,stroke-width:2px,color:white,font-weight:bold
 ```
 
 ## Dependencies
