@@ -48,6 +48,7 @@ This project implements a query understanding service powered by Large Language 
   - [Core Components](#core-components)
   - [Configuration Files](#configuration-files)
 - [Performance Considerations](#performance-considerations)
+- [Important Notes](#important-notes)
 
 ## Overview
 
@@ -56,7 +57,7 @@ This service transforms unstructured search queries into structured data formats
 ## Key Features
 
 - FastAPI-based REST API for query understanding
-- Uses open-source LLMs (Qwen2-7B by default) for natural language understanding
+- Uses open-source LLMs (Qwen2-0.5B-Instruct) for natural language understanding
 - Transforms search queries into structured JSON data
 - Docker containerization for easy deployment
 - Supports deployment to Kubernetes (GKE)
@@ -89,8 +90,8 @@ graph TD
     subgraph "Model Components"
         LLM -->|Uses| Tokenizer[Tokenizer]
         LLM -->|Loads| ModelWeights[Model Weights]
-        ModelWeights -->|Some layers on| GPU[MPS/GPU]
-        ModelWeights -->|Some layers on| Disk[Disk Storage]
+        ModelWeights -->|Optimized for| CPU[CPU Inference]
+        ModelWeights -->|Uses| Quantization[Int8 Quantization]
     end
 
     style LLM fill:#f9f,stroke:#333,stroke-width:2px
@@ -107,17 +108,15 @@ sequenceDiagram
     participant Cache as Redis Cache
     participant LLM as Large Language Model
     
-    Client->>FastAPI: POST /parse {"query": "red wooden sofa"}
-    FastAPI->>FastAPI: Parse request
+    Client->>FastAPI: POST /parse {"query": "blue metal dining table"}
     
-    FastAPI->>Cache: Check cache for query
+    FastAPI->>Cache: Check cache
+    
     alt Cache Hit
         Cache->>FastAPI: Return cached result
     else Cache Miss
-        FastAPI->>LLM: Generate structured data
+        FastAPI->>LLM: Process query
         
-        LLM->>LLM: Tokenize input
-        LLM->>LLM: Load required model layers
         LLM->>LLM: Generate response
         
         LLM->>FastAPI: Return structured data
@@ -219,7 +218,7 @@ This project relies on several Python packages, each serving a specific purpose:
 
 - **Torch (>=2.0.0)**: PyTorch is an open-source machine learning library developed by Facebook's AI Research lab. In our application, it provides the computational framework for running the language models, handling tensors, and performing the neural network operations needed for text generation.
 
-- **Transformers (>=4.32.0)**: Hugging Face's Transformers library provides pre-trained models for natural language processing. We use it to load and run the Qwen2-7B model, which powers our query understanding capabilities. The library provides a unified API for using these models regardless of their specific architecture.
+- **Transformers (>=4.32.0)**: Hugging Face's Transformers library provides pre-trained models for natural language processing. We use it to load and run the Qwen2-0.5B-Instruct model, which powers our query understanding capabilities. The library provides a unified API for using these models regardless of their specific architecture.
 
 ### Additional Dependencies
 
@@ -227,7 +226,7 @@ This project relies on several Python packages, each serving a specific purpose:
 
 - **Redis (>=5.0.0)**: An in-memory data structure store, used as a cache to store previously processed queries and their results. Redis significantly improves response times for repeated queries by eliminating the need to process them through the LLM again.
 
-- **Accelerate (>=0.21.0)**: Hugging Face's library for efficient model deployment, enabling advanced features like model offloading to disk, quantization, and optimized device placement. This is critical for running large models like Qwen2-7B on devices with limited memory by distributing model layers across GPU and disk storage.
+- **Accelerate (>=0.21.0)**: Hugging Face's library for efficient model deployment, enabling advanced features like model offloading to disk, quantization, and optimized device placement. This is critical for running large models like Qwen2-0.5B-Instruct on devices with limited memory by distributing model layers across GPU and disk storage.
 
 ## FastAPI in Detail
 
@@ -259,7 +258,7 @@ Uvicorn is an ASGI (Asynchronous Server Gateway Interface) server implementation
 
 1. **ASGI Protocol Support**: Implements the ASGI specification, which is the asynchronous successor to WSGI, allowing for handling WebSockets, HTTP/2, and other protocols.
 
-2. **High Performance**: Built on uvloop and httptools, making it one of the fastest Python servers available. It handles the translation between HTTP requests and our application.
+2. **High Performance**: Built on uvloop and httptools, making it one of the fastest Python web servers available. It handles the translation between HTTP requests and our application.
 
 3. **Reload Capability**: Offers automatic reloading during development when code changes are detected.
 
@@ -327,6 +326,15 @@ This sets up:
 - Redis caching on port 6379
 - Persistent volumes for model cache and Redis data
 
+The Docker Compose configuration includes the following environment variables:
+- `LOG_LEVEL=INFO` - Sets the logging level for the application
+- `JSON_LOGS=true` - Enables structured JSON logging for better log analysis
+- `REDIS_ENABLED=true` - Enables Redis caching
+- `REDIS_HOST=redis` - Points to the Redis service name in the Docker network
+- `REDIS_PORT=6379` - Specifies the Redis port
+
+> **Note:** Initial model loading takes only a few seconds. The first query will take 4-5 seconds, but subsequent queries to the same prompt will be nearly instantaneous (milliseconds) due to Redis caching.
+
 #### Managing Docker Compose Containers
 
 ```bash
@@ -384,7 +392,7 @@ When starting the container with `docker compose up`, the following sequence occ
    - LLM initializes (downloading model weights if needed)
    - Cache connection is established with Redis
 
-The first startup can take several minutes as the LLM is downloaded and initialized. The model weights are cached in a persistent volume, so subsequent startups are faster.
+The first startup can take significant time (typically 1-2 seconds) as the LLM is downloaded and initialized. The model weights are cached in a persistent volume, so subsequent startups are faster.
 
 ### Docker Troubleshooting
 
@@ -402,8 +410,18 @@ Common issues when running with Docker:
 3. **Redis connection errors**:
    - Verify Redis container is running with `docker ps`
    - Check if Redis service name matches the `REDIS_HOST` environment variable in docker-compose.yml
+   - Ensure the cache.py file is properly using environment variables for Redis connection
+   - If using a custom Redis setup, verify the environment variables are set correctly:
+     ```
+     REDIS_ENABLED=true
+     REDIS_HOST=redis
+     REDIS_PORT=6379
+     ```
 
-4. **Model loading takes too long**:
+4. **Docker Compose warnings**:
+   - If you see a warning about `the attribute 'version' is obsolete`, you can safely remove the `version: '3.8'` line from your docker-compose.yml. Modern Docker Compose no longer requires this attribute.
+
+5. **Model loading takes too long**:
    - This is normal for the first run as the model is downloaded
    - Check disk space to ensure there's enough for model storage (~14GB)
    - Consider using a smaller model by modifying the `llm.py` file
@@ -440,9 +458,9 @@ When you run `python main.py`, the following sequence of events occurs:
 
 ### Startup Performance on M4 Max MacBook Pro
 
-Even on a powerful M4 Max MacBook Pro with 14 cores and 36GB RAM, the initial startup can take significant time (typically 2-5 minutes) due to several factors:
+Even on a powerful M4 Max MacBook Pro with 14 cores and 36GB RAM, the initial startup can take significant time (typically 1-2 seconds) due to several factors:
 
-1. **Model Size**: The Qwen2-7B model contains approximately 7 billion parameters, requiring ~14GB of memory in FP16 precision. Loading these weights from disk into memory is I/O bound and takes time.
+1. **Model Size**: The Qwen2-0.5B-Instruct model contains approximately 0.5 billion parameters, requiring ~1.5GB of memory in FP16 precision. Loading these weights from disk into memory is I/O bound and takes time.
 
 2. **Model Compilation**: On Apple Silicon, PyTorch leverages the Metal Performance Shaders (MPS) backend. When a model is first loaded, operations need to be compiled specifically for the M4 Max's Neural Engine, which is a one-time process but adds to initial startup time.
 
@@ -451,14 +469,14 @@ Even on a powerful M4 Max MacBook Pro with 14 cores and 36GB RAM, the initial st
 4. **Memory Optimization**: PyTorch performs memory optimizations and tensor allocations during model initialization.
 
 5. **First-run Caching**: On the first run, various components cache data to improve subsequent performance. This includes:
-   - Hugging Face model caching (~14GB for Qwen2-7B)
+   - Hugging Face model caching (~1.5GB for Qwen2-0.5B-Instruct)
    - PyTorch MPS/Metal shader compilations
    - Python import caching
 
 Subsequent startups will be faster as the model files will already be downloaded and cached locally, and some of the compilation steps will be reused. However, the model loading will still take significant time due to the sheer size of the weights.
 
 To improve startup time:
-- Consider using a smaller model (e.g., Qwen2-1.5B) for development
+- Consider using a smaller model (e.g., Qwen2-0.25B) for development
 - Keep the service running instead of frequent restarts
 - Implement model quantization to reduce memory requirements
 
@@ -484,7 +502,7 @@ RuntimeError: You can't move a model that has some modules offloaded to cpu or d
 
 If you encounter out-of-memory errors despite having sufficient RAM:
 
-1. Reduce the model size by using a smaller variant (e.g., Qwen2-1.5B instead of Qwen2-7B)
+1. Reduce the model size by using a smaller variant (e.g., Qwen2-0.25B instead of Qwen2-0.5B)
 2. Apply model quantization techniques (int8/int4) in the `llm.py` file
 3. Adjust batch size or max length parameters for generation
 4. Ensure no other memory-intensive applications are running simultaneously
@@ -564,17 +582,13 @@ This data can be extracted for monitoring, alerting, and performance optimizatio
 
 ## API Usage
 
-The service provides the following endpoints:
-
 ### Root Endpoint
 
-```
-GET /
-```
+**Endpoint**: `GET /`
 
-Returns basic service information and a list of available endpoints.
+**Description**: Returns basic information about the service and available endpoints.
 
-Response:
+**Example Response**:
 ```json
 {
   "service": "LLM Query Understanding Service",
@@ -590,13 +604,11 @@ Response:
 
 ### Health Check Endpoint
 
-```
-GET /health
-```
+**Endpoint**: `GET /health`
 
-Provides a simple health check to verify the service is running.
+**Description**: Simple health check to verify the service is running.
 
-Response:
+**Example Response**:
 ```json
 {
   "status": "ok"
@@ -605,85 +617,133 @@ Response:
 
 ### API Documentation Endpoints
 
-```
-GET /docs
-```
-Interactive Swagger UI documentation for exploring and testing the API.
+- **Swagger UI**: `GET /docs`
+- **ReDoc**: `GET /redoc`
 
-```
-GET /redoc
-```
-Alternative ReDoc documentation with a different layout and presentation.
+These endpoints provide interactive documentation for the API, allowing you to explore and test the endpoints directly from your browser.
 
 ### Query Understanding Endpoint
 
-```
-POST /parse
-```
+**Endpoint**: `POST /parse`
 
-Request:
+**Description**: Parses a search query into structured data using the LLM.
+
+**Request Format**:
 ```json
 {
-    "query": "red wooden sofa with armrests"
+  "query": "string"
 }
 ```
 
-Response:
-```json
-{
-    "generation_time": 460.73,
-    "parsed_query": {
-        "item_type": "sofa",
-        "material": "wood",
-        "color": "red"
-    },
-    "query": "red wooden sofa with armrests",
-    "cached": false,
-    "total_time": 460.7282
-}
-```
+**Example Requests and Responses**:
+
+1. **Blue Metal Dining Table**
+
+   Request:
+   ```json
+   {
+     "query": "blue metal dining table"
+   }
+   ```
+
+   Response:
+   ```json
+   {
+     "generation_time": 4.75,
+     "parsed_query": {
+       "item_type": "dining table",
+       "material": "metal",
+       "color": "blue"
+     },
+     "query": "blue metal dining table",
+     "cached": false,
+     "total_time": 4.7543,
+     "cache_lookup_time": null
+   }
+   ```
+
+2. **Green Plastic Chair**
+
+   Request:
+   ```json
+   {
+     "query": "green plastic chair"
+   }
+   ```
+
+   Response:
+   ```json
+   {
+     "generation_time": 4.16,
+     "parsed_query": {
+       "item_type": "chair",
+       "material": "plastic",
+       "color": "green"
+     },
+     "query": "green plastic chair",
+     "cached": false,
+     "total_time": 4.1633,
+     "cache_lookup_time": null
+   }
+   ```
+
+3. **Wooden Bookshelf with Glass Doors**
+
+   Request:
+   ```json
+   {
+     "query": "wooden bookshelf with glass doors"
+   }
+   ```
+
+   Response:
+   ```json
+   {
+     "generation_time": 4.18,
+     "parsed_query": {
+       "item_type": "bookshelf",
+       "material": "wooden",
+       "color": null
+     },
+     "query": "wooden bookshelf with glass doors",
+     "cached": false,
+     "total_time": 4.1802,
+     "cache_lookup_time": null
+   }
+   ```
+
+4. **Cached Query Example**
+
+   When requesting a previously processed query, the response is much faster:
+
+   ```json
+   {
+     "generation_time": 4.18,
+     "parsed_query": {
+       "item_type": "bookshelf",
+       "material": "wooden",
+       "color": null
+     },
+     "query": "wooden bookshelf with glass doors",
+     "cached": true,
+     "total_time": 0.0003,
+     "cache_lookup_time": 0.0003
+   }
+   ```
 
 ### Response Fields
 
-- `generation_time`: Time in seconds taken by the LLM to generate the response
-- `parsed_query`: Structured data extracted from the query
-- `query`: The original query text
-- `cached`: Whether the result was retrieved from cache
-- `total_time`: Total time for the entire request processing
-
-### Example: Initial vs. Subsequent Requests
-
-First request (model layers being loaded from disk):
-```json
-{
-    "generation_time": 460.73,
-    "parsed_query": {
-        "item_type": "sofa",
-        "material": "wood",
-        "color": "red"
-    },
-    "query": "red wooden sofa with armrests",
-    "cached": false,
-    "total_time": 460.7282
-}
-```
-
-Second request (still no caching as Redis is disabled by default):
-```json
-{
-    "generation_time": 450.71,
-    "parsed_query": {
-        "item_type": "sofa",
-        "material": "wood",
-        "color": "red"
-    },
-    "query": "red wooden sofa with armrests",
-    "cached": false,
-    "total_time": 450.7073
-}
-```
-
-With caching enabled (`REDIS_ENABLED=true`), subsequent identical queries would return much faster with the `cached` field set to `true`.
+| Field | Type | Description |
+|-------|------|-------------|
+| `generation_time` | float | Time taken by the LLM to generate the response (in seconds) |
+| `parsed_query` | object | The structured data extracted from the query |
+| `parsed_query.item_type` | string | The type of furniture item (e.g., "chair", "table") |
+| `parsed_query.material` | string | The material of the item (e.g., "wood", "metal") |
+| `parsed_query.color` | string | The color of the item (e.g., "red", "blue") |
+| `query` | string | The original query string |
+| `cached` | boolean | Whether the response was retrieved from cache |
+| `total_time` | float | Total processing time (in seconds) |
+| `cache_lookup_time` | float | Time taken to look up the query in cache (null if not cached) |
 
 ## Project Structure
 
@@ -740,7 +800,7 @@ Wrapper for Hugging Face's Transformers library that handles the LLM integration
 
 ```python
 # Key functionality:
-# - Loads and initializes the LLM (Qwen2-7B by default)
+# - Loads and initializes the LLM (Qwen2-0.5B-Instruct by default)
 # - Manages tokenization and model inference
 # - Handles device placement (MPS, CPU, or CUDA)
 # - Supports accelerate's disk offloading for large models
@@ -826,23 +886,36 @@ Docker Compose configuration for running the application with Redis.
 The application has several performance characteristics to be aware of:
 
 1. **Initial Load Time**: 
-   - First startup is slow (~2-5 minutes) as model weights are loaded
-   - First query is very slow (~7-8 minutes) as model layers are activated
+   - First startup is very fast (~1-2 seconds) as the smaller model weights are loaded
+   - First query is reasonably fast (~4-5 seconds) with the optimized model
    
 2. **Memory Usage**:
-   - Uses disk offloading to manage memory for large models
-   - Only a portion of model layers are kept in GPU memory
+   - Uses int8 quantization for efficient CPU inference
+   - The smaller model (Qwen2-0.5B-Instruct) requires much less memory than larger alternatives
    
 3. **Caching Impact**:
-   - Enabling Redis caching dramatically improves repeat query performance
-   - Without caching, query processing still improves after initial calls
+   - Enabling Redis caching dramatically improves repeat query performance (milliseconds vs seconds)
+   - Without caching, query processing still takes ~4-5 seconds per query
    
-4. **Apple Silicon Specifics**:
-   - Uses Metal Performance Shaders (MPS) backend on Apple Silicon
-   - Model compilation on first run optimizes for the M4 Max Neural Engine
+4. **Robust JSON Parsing**:
+   - Multi-method approach to extract valid JSON from model outputs
+   - Validation and correction of parsed data against query terms
 
 For production deployment, consider:
-- Using a smaller model for faster response times
-- Implementing model quantization to reduce memory requirements
-- Pre-warming the model with common queries at startup
+- Fine-tuning the model on domain-specific data for better accuracy
+- Implementing a worker pool for parallel query processing
 - Setting up a Redis cluster for distributed caching
+- Monitoring query patterns to optimize prompt templates
+
+## Important Notes
+
+- **Python Version:** The project is configured to use Python 3.12 due to compatibility with PyTorch and Transformers.
+- **Performance:** The service has been optimized for speed and efficiency:
+  - Uses the smaller Qwen2-0.5B-Instruct model instead of the larger Qwen2-7B
+  - Implements int8 quantization for efficient CPU inference
+  - Model loading typically takes 1-2 seconds
+  - First query processing takes 4-5 seconds
+  - Subsequent identical queries using Redis caching respond in milliseconds
+- **Redis:** Redis caching is enabled by default in Docker Compose and properly configured to use environment variables.
+- **JSON Parsing:** The service implements robust JSON parsing with multiple fallback methods and validation to ensure reliable query understanding.
+- **Prompt Template:** The service uses an optimized prompt template specifically designed for furniture query parsing.

@@ -13,7 +13,7 @@ class QueryCache:
     Cache for storing and retrieving query parsing results using Redis.
     """
     
-    def __init__(self, host: str = "localhost", port: int = 6379, db: int = 0):
+    def __init__(self, host: str = None, port: int = None, db: int = 0):
         """
         Initialize the cache with Redis connection parameters.
         
@@ -24,16 +24,20 @@ class QueryCache:
         """
         self.redis_enabled = os.environ.get("REDIS_ENABLED", "false").lower() == "true"
         
+        # Get Redis connection parameters from environment variables
+        redis_host = host or os.environ.get("REDIS_HOST", "localhost")
+        redis_port = port or int(os.environ.get("REDIS_PORT", "6379"))
+        
         # Log cache configuration
         logger.info(f"Initializing QueryCache with redis_enabled={self.redis_enabled}")
         if self.redis_enabled:
-            logger.debug(f"Redis configuration: host={host}, port={port}, db={db}")
+            logger.debug(f"Redis configuration: host={redis_host}, port={redis_port}, db={db}")
             
         if self.redis_enabled:
             try:
                 logger.debug("Attempting to connect to Redis...")
                 start_time = time.time()
-                self.redis = redis.Redis(host=host, port=port, db=db)
+                self.redis = redis.Redis(host=redis_host, port=redis_port, db=db)
                 self.redis.ping()  # Test connection
                 connection_time = time.time() - start_time
                 logger.info(f"Redis connection successful (took {connection_time:.4f}s)")

@@ -7,6 +7,7 @@ import os
 import traceback
 from typing import Dict, Any
 from pydantic import BaseModel
+import re
 
 from llm_query_understand.llm import LargeLanguageModel
 from llm_query_understand.cache import QueryCache
@@ -34,21 +35,28 @@ app.add_middleware(
 
 # Prompt template for furniture query parsing
 FURNITURE_PROMPT = """
-You are a helpful assistant. You will be given a search query and you need to parse furniture searches it into a structured format. The structured format should include the following fields:
+You are a JSON processor for furniture queries. Your job is to extract structured data from search queries.
 
-    - item_type - the core thing the user wants (sofa, table, chair, etc.)
-    - material - the material of the item (wood, metal, plastic, etc.)
-    - color - the color of the item (red, blue, green, etc.)
+IMPORTANT: Your ENTIRE response must be a SINGLE valid JSON object. Do not include ANY explanatory text.
 
-    Respond with a single line of JSON:
+Extract these fields from the query:
+- item_type: The main furniture item (sofa, table, chair, etc.)
+- material: The material mentioned (wood, metal, plastic, etc.)
+- color: The color mentioned (red, blue, green, etc.)
 
-        {"item_type": "sofa", "material": "wood", "color": "red"}
+Omit a field if not specified in the query.
 
-    Omit any other information. Do not include any other text in your response. Omit a value if the user did not specify it. For example, if the user said "red sofa", you would respond with:
+Examples:
+Query: "black leather couch"
+Response: {"item_type": "couch", "material": "leather", "color": "black"}
 
-        {"item_type": "sofa", "color": "red"}
+Query: "wooden dining table"
+Response: {"item_type": "dining table", "material": "wood"}
 
-Here is the search query: 
+Query: "blue metal office chair with armrests"
+Response: {"item_type": "office chair", "material": "metal", "color": "blue"}
+
+YOUR TURN - Parse this query ONLY (output just one JSON object, nothing else): 
 """
 
 # Record startup time
@@ -162,31 +170,136 @@ async def query_understand(request: QueryRequest):
         try:
             # Extract the JSON part from the response
             logger.debug(f"[{request_id}] Raw LLM response: {response}")
-            parsed_query_as_json = response.split("\n")[-1].strip()
-            logger.debug(f"[{request_id}] Extracted JSON: {parsed_query_as_json}")
             
-            parsed_query = json.loads(parsed_query_as_json)
-            logger.info(f"[{request_id}] Successfully parsed query into JSON: {parsed_query}")
+            # Try to extract JSON from the response using different methods
+            parsed_query = None
             
-            # Prepare the result
-            result = {
-                "generation_time": round(generation_time, 2),
-                "parsed_query": parsed_query,
-                "query": query,
-                "cached": False,
-                "total_time": round(perf_counter() - start, 4)
-            }
+            # Method 1: Clean and attempt to parse the entire response first
+            try:
+                cleaned_response = response.strip()
+                if cleaned_response.startswith("{") and cleaned_response.endswith("}"):
+                    # Try parsing the entire response as JSON if it looks like a JSON object
+                    candidate = json.loads(cleaned_response)
+                    if isinstance(candidate, dict) and any(key in candidate for key in ["item_type", "material", "color"]):
+                        parsed_query = candidate
+                        logger.info(f"[{request_id}] Successfully parsed complete response as JSON: {parsed_query}")
+            except json.JSONDecodeError:
+                pass
             
-            # Store in cache for future use
-            cache_store_start = perf_counter()
-            cache_success = cache.set(query, result)
-            cache_store_time = perf_counter() - cache_store_start
+            # Method 2: Use regex to find JSON patterns, skip known example patterns
+            if parsed_query is None:
+                known_examples = [
+                    '{"item_type": "couch", "material": "leather", "color": "black"}',
+                    '{"item_type": "dining table", "material": "wood"}',
+                    '{"item_type": "office chair", "material": "metal", "color": "blue"}'
+                ]
+                
+                json_patterns = re.findall(r'(\{.*?\})', response, re.DOTALL)
+                
+                for pattern in json_patterns:
+                    pattern_str = pattern.strip()
+                    # Skip if this is one of our examples from the prompt
+                    if any(example in pattern_str for example in known_examples):
+                        continue
+                    
+                    try:
+                        candidate = json.loads(pattern_str)
+                        if isinstance(candidate, dict) and any(key in candidate for key in ["item_type", "material", "color"]):
+                            parsed_query = candidate
+                            logger.info(f"[{request_id}] Successfully parsed query into JSON using regex: {parsed_query}")
+                            break
+                    except json.JSONDecodeError:
+                        continue
             
-            if cache_success:
-                logger.debug(f"[{request_id}] Result cached successfully in {cache_store_time:.4f}s")
+            # Method 3: Check for JSON code blocks (``` or `)
+            if parsed_query is None:
+                code_blocks = re.findall(r'```(?:json)?\s*(\{.*?\})\s*```', response, re.DOTALL)
+                if not code_blocks:
+                    code_blocks = re.findall(r'`(\{.*?\})`', response, re.DOTALL)
+                
+                for block in code_blocks:
+                    try:
+                        # Skip if this is one of our examples from the prompt
+                        if any(example in block for example in known_examples):
+                            continue
+                            
+                        candidate = json.loads(block)
+                        if isinstance(candidate, dict) and any(key in candidate for key in ["item_type", "material", "color"]):
+                            parsed_query = candidate
+                            logger.info(f"[{request_id}] Successfully parsed query into JSON from code block: {parsed_query}")
+                            break
+                    except json.JSONDecodeError:
+                        continue
             
-            return result
+            # If we successfully parsed a query, prepare the result
+            if parsed_query is not None:
+                # Ensure parsed query matches the query's main elements
+                query_terms = query.lower().split()
+                
+                # Do a basic sanity check - if item_type is completely wrong, try to fix it
+                if 'item_type' in parsed_query and parsed_query['item_type'] is not None:
+                    furniture_terms = ['chair', 'table', 'sofa', 'couch', 'desk', 'bed', 'cabinet', 'dresser', 'bookshelf']
+                    
+                    # Check if the right furniture type is in the query
+                    query_furniture = next((term for term in query_terms if any(furniture in term for furniture in furniture_terms)), None)
+                    parsed_furniture = parsed_query['item_type'].lower() if parsed_query['item_type'] else None
+                    
+                    # If our query mentions furniture, but the parsed result has the wrong type
+                    if query_furniture and parsed_furniture and query_furniture not in parsed_furniture:
+                        logger.warning(f"[{request_id}] Parsed item_type '{parsed_furniture}' doesn't match query furniture '{query_furniture}'. Fixing.")
+                        parsed_query['item_type'] = query_furniture
+                
+                # Handle detected material - similarly, validate and fix if needed
+                if 'material' in parsed_query and parsed_query['material'] is not None:
+                    materials = ['wood', 'wooden', 'metal', 'plastic', 'glass', 'leather', 'fabric', 'cotton']
+                    query_material = next((term for term in query_terms if any(material in term for material in materials)), None)
+                    parsed_material = parsed_query['material'].lower() if parsed_query['material'] else None
+                    
+                    if query_material and parsed_material and query_material not in parsed_material:
+                        logger.warning(f"[{request_id}] Parsed material '{parsed_material}' doesn't match query material '{query_material}'. Fixing.")
+                        parsed_query['material'] = query_material
+                
+                # Handle detected color - validate and fix if needed
+                if 'color' in parsed_query and parsed_query['color'] is not None:
+                    colors = ['red', 'blue', 'green', 'yellow', 'black', 'white', 'brown', 'purple', 'orange', 'pink', 'gray', 'grey']
+                    query_color = next((term for term in query_terms if term in colors), None)
+                    parsed_color = parsed_query['color'].lower() if parsed_query['color'] else None
+                    
+                    if query_color and parsed_color and query_color != parsed_color:
+                        logger.warning(f"[{request_id}] Parsed color '{parsed_color}' doesn't match query color '{query_color}'. Fixing.")
+                        parsed_query['color'] = query_color
+                
+                # Prepare the result
+                result = {
+                    "generation_time": round(generation_time, 2),
+                    "parsed_query": parsed_query,
+                    "query": query,
+                    "cached": False,
+                    "total_time": round(perf_counter() - start, 4)
+                }
+                
+                # Store in cache for future use
+                cache_store_start = perf_counter()
+                cache_success = cache.set(query, result)
+                cache_store_time = perf_counter() - cache_store_start
+                
+                if cache_success:
+                    logger.debug(f"[{request_id}] Result cached successfully in {cache_store_time:.4f}s")
+                
+                return result
             
+            # If we reached here, we couldn't parse any valid JSON
+            error_msg = "Failed to find valid JSON in LLM response"
+            logger.error(f"[{request_id}] {error_msg}")
+            logger.error(f"[{request_id}] Problematic LLM response: {response}")
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "Failed to parse response from LLM",
+                    "details": error_msg,
+                    "response": response
+                }
+            )
         except json.JSONDecodeError as e:
             error_msg = f"Failed to parse JSON from LLM response: {str(e)}"
             logger.error(f"[{request_id}] {error_msg}")

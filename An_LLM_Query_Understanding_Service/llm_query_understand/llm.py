@@ -2,6 +2,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import os
 import time
+import gc  # For garbage collection to free memory
 from llm_query_understand.logging_config import get_logger
 
 # Get the configured logger
@@ -12,12 +13,15 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else
                      "mps" if torch.backends.mps.is_available() else 
                      "cpu")
 
+# Default model - use a smaller model for CPU
+DEFAULT_MODEL = "Qwen/Qwen2-0.5B-Instruct"
+
 class LargeLanguageModel:
     """
     A wrapper class for interacting with transformer-based language models.
     """
 
-    def __init__(self, device=DEVICE, model="Qwen/Qwen2-7B"):
+    def __init__(self, device=DEVICE, model=DEFAULT_MODEL):
         """
         Initialize the language model with the specified device and model.
         
@@ -40,14 +44,21 @@ class LargeLanguageModel:
                 logger.debug("Setting pad_token to eos_token as it was not defined")
                 self.tokenizer.pad_token = self.tokenizer.eos_token
             
-            # Load the model with device_map="auto" to let the library handle device placement
-            # This ensures compatibility with accelerate's offloading mechanism
+            # Run garbage collection before model loading to free memory
+            gc.collect()
+            
+            # Load the model with standard settings and device mapping
             logger.info(f"Loading model {model}, this may take several minutes...")
             start_time = time.time()
+            
+            # For CPU inference, use int8 quantization for better performance
+            dtype = torch.int8 if device == "cpu" else torch.float16
+            
             self.model = AutoModelForCausalLM.from_pretrained(
                 model,
-                torch_dtype=torch.float16,
-                device_map="auto"
+                torch_dtype=dtype,
+                device_map="auto",
+                low_cpu_mem_usage=True    # Enable low CPU memory usage
             )
             load_time = time.time() - start_time
             logger.info(f"Model loaded in {load_time:.2f} seconds")

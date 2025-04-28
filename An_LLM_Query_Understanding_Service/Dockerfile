@@ -24,7 +24,7 @@ RUN mkdir -p /root/.cache/huggingface
 ENV PYTHONUNBUFFERED=1
 ENV LOG_LEVEL=INFO
 ENV JSON_LOGS=true
-ENV REDIS_ENABLED=false
+ENV REDIS_ENABLED=true
 
 # Expose the port the app runs on
 EXPOSE 8000
