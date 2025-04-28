@@ -2,31 +2,10 @@
 
 This project implements a query understanding service powered by Large Language Models (LLMs), following the tutorial at [softwaredoug.com](https://softwaredoug.com/blog/2025/04/08/llm-query-understand).
 
-## Model Selection
-
-While the original tutorial used Qwen2-7B (a 7 billion parameter model), this implementation uses **Qwen2-0.5B-Instruct** for significantly better performance:
-
-| Aspect | Original (Qwen2-7B) | This Implementation (Qwen2-0.5B-Instruct) |
-|--------|---------------------|------------------------------------------|
-| Parameters | 7 billion | 0.5 billion (14x smaller) |
-| Model Size | ~14GB | ~1.5GB |
-| Loading Time | 2+ minutes | 1-2 seconds |
-| Query Time | 3+ minutes | 4-5 seconds |
-| Memory Usage | Requires disk offloading | Fits entirely in RAM |
-| Quantization | Difficult with larger model | Effective int8 quantization |
-| Hardware Requirements | GPU recommended | Runs efficiently on CPU |
-
-The smaller model provides several advantages:
-- **Speed**: Much faster loading and inference times
-- **Resource Efficiency**: Lower memory and CPU requirements
-- **Deployment Flexibility**: Can run on less powerful hardware
-- **Cost Effectiveness**: Requires fewer resources in production
-
-Despite being smaller, Qwen2-0.5B-Instruct maintains excellent performance for the specific task of query understanding, demonstrating that carefully selecting the right-sized model for your use case can lead to dramatic performance improvements without sacrificing quality.
-
 ## Table of Contents
 
 - [Overview](#overview)
+- [Model Selection](#model-selection)
 - [Key Features](#key-features)
 - [Architecture](#architecture)
   - [System Architecture Diagram](#system-architecture-diagram)
@@ -75,6 +54,28 @@ Despite being smaller, Qwen2-0.5B-Instruct maintains excellent performance for t
 ## Overview
 
 This service transforms unstructured search queries into structured data formats, enabling more accurate and useful search results. By leveraging open-source LLMs, the service parses natural language queries into JSON objects with specific fields relevant to the search domain.
+
+## Model Selection
+
+While the original tutorial used Qwen2-7B (a 7 billion parameter model), this implementation uses **Qwen2-0.5B-Instruct** for significantly better performance:
+
+| Aspect | Original (Qwen2-7B) | This Implementation (Qwen2-0.5B-Instruct) |
+|--------|---------------------|------------------------------------------|
+| Parameters | 7 billion | 0.5 billion (14x smaller) |
+| Model Size | ~14GB | ~1.5GB |
+| Loading Time | 2+ minutes | 1-2 seconds |
+| Query Time | 3+ minutes | 4-5 seconds |
+| Memory Usage | Requires disk offloading | Fits entirely in RAM |
+| Quantization | Difficult with larger model | Effective int8 quantization |
+| Hardware Requirements | GPU recommended | Runs efficiently on CPU |
+
+The smaller model provides several advantages:
+- **Speed**: Much faster loading and inference times
+- **Resource Efficiency**: Lower memory and CPU requirements
+- **Deployment Flexibility**: Can run on less powerful hardware
+- **Cost Effectiveness**: Requires fewer resources in production
+
+Despite being smaller, Qwen2-0.5B-Instruct maintains excellent performance for the specific task of query understanding, demonstrating that carefully selecting the right-sized model for your use case can lead to dramatic performance improvements without sacrificing quality.
 
 ## Key Features
 
