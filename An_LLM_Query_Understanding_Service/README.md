@@ -117,9 +117,9 @@ graph TD
         ModelWeights -->|Uses| Quantization[Int8 Quantization]
     end
 
-    style LLM fill:#d8a0e6,stroke:#333,stroke-width:2px
-    style Cache fill:#a0c4ff,stroke:#333,stroke-width:2px
-    style API fill:#a0e6a0,stroke:#333,stroke-width:2px
+    style LLM fill:white,stroke:black,stroke-width:2px
+    style Cache fill:white,stroke:black,stroke-width:2px
+    style API fill:white,stroke:black,stroke-width:2px
 ```
 
 ### Request Processing Flow
@@ -163,12 +163,12 @@ graph LR
     DockerCompose -->|Down| StoppedContainer
     DockerCompose -->|Exec| RunningContainer
     
-    style Dockerfile fill:#d8a0e6,stroke:#333,stroke-width:2px
-    style DockerImage fill:#a0c4ff,stroke:#333,stroke-width:2px
-    style DockerContainer fill:#a0e6a0,stroke:#333,stroke-width:2px
-    style RunningContainer fill:#a0e6e6,stroke:#333,stroke-width:2px
-    style StoppedContainer fill:#e6e6a0,stroke:#333,stroke-width:2px
-    style RemovedContainer fill:#e6a0a0,stroke:#333,stroke-width:2px
+    style Dockerfile fill:white,stroke:black,stroke-width:2px
+    style DockerImage fill:white,stroke:black,stroke-width:2px
+    style DockerContainer fill:white,stroke:black,stroke-width:2px
+    style RunningContainer fill:white,stroke:black,stroke-width:2px
+    style StoppedContainer fill:white,stroke:black,stroke-width:2px
+    style RemovedContainer fill:white,stroke:black,stroke-width:2px
 ```
 
 ### Docker Compose Services
@@ -195,10 +195,10 @@ graph TB
     
     APIContainer -->|Query Cache| RedisContainer
     
-    style APIContainer fill:#a0e6a0,stroke:#333,stroke-width:2px
-    style RedisContainer fill:#a0c4ff,stroke:#333,stroke-width:2px
-    style Volume1 fill:#e6a0a0,stroke:#333,stroke-width:2px
-    style Volume2 fill:#e6a0a0,stroke:#333,stroke-width:2px
+    style APIContainer fill:white,stroke:black,stroke-width:2px
+    style RedisContainer fill:white,stroke:black,stroke-width:2px
+    style Volume1 fill:white,stroke:black,stroke-width:2px
+    style Volume2 fill:white,stroke:black,stroke-width:2px
 ```
 
 ### Docker Container Architecture
@@ -219,14 +219,14 @@ graph TB
     
     Cache -->|Connects To| Redis
     
-    style Python fill:#a0c4ff,stroke:#333,stroke-width:2px
-    style Uvicorn fill:#a0e6a0,stroke:#333,stroke-width:2px
-    style FastAPI fill:#a0e6a0,stroke:#333,stroke-width:2px
-    style LLM fill:#d8a0e6,stroke:#333,stroke-width:2px
-    style Cache fill:#e6a0a0,stroke:#333,stroke-width:2px
-    style Redis fill:#a0c4ff,stroke:#333,stroke-width:2px
-    style Volume1 fill:#a0e6e6,stroke:#333,stroke-width:2px
-    style Volume2 fill:#a0e6e6,stroke:#333,stroke-width:2px
+    style Python fill:white,stroke:black,stroke-width:2px
+    style Uvicorn fill:white,stroke:black,stroke-width:2px
+    style FastAPI fill:white,stroke:black,stroke-width:2px
+    style LLM fill:white,stroke:black,stroke-width:2px
+    style Cache fill:white,stroke:black,stroke-width:2px
+    style Redis fill:white,stroke:black,stroke-width:2px
+    style Volume1 fill:white,stroke:black,stroke-width:2px
+    style Volume2 fill:white,stroke:black,stroke-width:2px
 ```
 
 ## Dependencies
