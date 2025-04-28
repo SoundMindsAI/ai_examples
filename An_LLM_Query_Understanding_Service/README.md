@@ -2,6 +2,28 @@
 
 This project implements a query understanding service powered by Large Language Models (LLMs), following the tutorial at [softwaredoug.com](https://softwaredoug.com/blog/2025/04/08/llm-query-understand).
 
+## Model Selection
+
+While the original tutorial used Qwen2-7B (a 7 billion parameter model), this implementation uses **Qwen2-0.5B-Instruct** for significantly better performance:
+
+| Aspect | Original (Qwen2-7B) | This Implementation (Qwen2-0.5B-Instruct) |
+|--------|---------------------|------------------------------------------|
+| Parameters | 7 billion | 0.5 billion (14x smaller) |
+| Model Size | ~14GB | ~1.5GB |
+| Loading Time | 2+ minutes | 1-2 seconds |
+| Query Time | 3+ minutes | 4-5 seconds |
+| Memory Usage | Requires disk offloading | Fits entirely in RAM |
+| Quantization | Difficult with larger model | Effective int8 quantization |
+| Hardware Requirements | GPU recommended | Runs efficiently on CPU |
+
+The smaller model provides several advantages:
+- **Speed**: Much faster loading and inference times
+- **Resource Efficiency**: Lower memory and CPU requirements
+- **Deployment Flexibility**: Can run on less powerful hardware
+- **Cost Effectiveness**: Requires fewer resources in production
+
+Despite being smaller, Qwen2-0.5B-Instruct maintains excellent performance for the specific task of query understanding, demonstrating that carefully selecting the right-sized model for your use case can lead to dramatic performance improvements without sacrificing quality.
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -94,9 +116,9 @@ graph TD
         ModelWeights -->|Uses| Quantization[Int8 Quantization]
     end
 
-    style LLM fill:#f9f,stroke:#333,stroke-width:2px
-    style Cache fill:#bbf,stroke:#333,stroke-width:2px
-    style API fill:#bfb,stroke:#333,stroke-width:2px
+    style LLM fill:#d8a0e6,stroke:#333,stroke-width:2px
+    style Cache fill:#a0c4ff,stroke:#333,stroke-width:2px
+    style API fill:#a0e6a0,stroke:#333,stroke-width:2px
 ```
 
 ### Request Processing Flow
@@ -140,12 +162,12 @@ graph LR
     DockerCompose -->|Down| StoppedContainer
     DockerCompose -->|Exec| RunningContainer
     
-    style Dockerfile fill:#f9f,stroke:#333,stroke-width:2px
-    style DockerImage fill:#bbf,stroke:#333,stroke-width:2px
-    style DockerContainer fill:#bfb,stroke:#333,stroke-width:2px
-    style RunningContainer fill:#cff,stroke:#333,stroke-width:2px
-    style StoppedContainer fill:#ffb,stroke:#333,stroke-width:2px
-    style RemovedContainer fill:#fbb,stroke:#333,stroke-width:2px
+    style Dockerfile fill:#d8a0e6,stroke:#333,stroke-width:2px
+    style DockerImage fill:#a0c4ff,stroke:#333,stroke-width:2px
+    style DockerContainer fill:#a0e6a0,stroke:#333,stroke-width:2px
+    style RunningContainer fill:#a0e6e6,stroke:#333,stroke-width:2px
+    style StoppedContainer fill:#e6e6a0,stroke:#333,stroke-width:2px
+    style RemovedContainer fill:#e6a0a0,stroke:#333,stroke-width:2px
 ```
 
 ### Docker Compose Services
@@ -172,10 +194,10 @@ graph TB
     
     APIContainer -->|Query Cache| RedisContainer
     
-    style APIContainer fill:#bfb,stroke:#333,stroke-width:2px
-    style RedisContainer fill:#bbf,stroke:#333,stroke-width:2px
-    style Volume1 fill:#fbb,stroke:#333,stroke-width:2px
-    style Volume2 fill:#fbb,stroke:#333,stroke-width:2px
+    style APIContainer fill:#a0e6a0,stroke:#333,stroke-width:2px
+    style RedisContainer fill:#a0c4ff,stroke:#333,stroke-width:2px
+    style Volume1 fill:#e6a0a0,stroke:#333,stroke-width:2px
+    style Volume2 fill:#e6a0a0,stroke:#333,stroke-width:2px
 ```
 
 ### Docker Container Architecture
@@ -196,14 +218,14 @@ graph TB
     
     Cache -->|Connects To| Redis
     
-    style Python fill:#bbf,stroke:#333,stroke-width:2px
-    style Uvicorn fill:#bfb,stroke:#333,stroke-width:2px
-    style FastAPI fill:#bfb,stroke:#333,stroke-width:2px
-    style LLM fill:#f9f,stroke:#333,stroke-width:2px
-    style Cache fill:#fbb,stroke:#333,stroke-width:2px
-    style Redis fill:#bbf,stroke:#333,stroke-width:2px
-    style Volume1 fill:#cff,stroke:#333,stroke-width:2px
-    style Volume2 fill:#cff,stroke:#333,stroke-width:2px
+    style Python fill:#a0c4ff,stroke:#333,stroke-width:2px
+    style Uvicorn fill:#a0e6a0,stroke:#333,stroke-width:2px
+    style FastAPI fill:#a0e6a0,stroke:#333,stroke-width:2px
+    style LLM fill:#d8a0e6,stroke:#333,stroke-width:2px
+    style Cache fill:#e6a0a0,stroke:#333,stroke-width:2px
+    style Redis fill:#a0c4ff,stroke:#333,stroke-width:2px
+    style Volume1 fill:#a0e6e6,stroke:#333,stroke-width:2px
+    style Volume2 fill:#a0e6e6,stroke:#333,stroke-width:2px
 ```
 
 ## Dependencies
@@ -900,6 +922,12 @@ The application has several performance characteristics to be aware of:
 4. **Robust JSON Parsing**:
    - Multi-method approach to extract valid JSON from model outputs
    - Validation and correction of parsed data against query terms
+
+5. **Model Size Considerations**:
+   - The original tutorial's Qwen2-7B model is 14x larger than our Qwen2-0.5B-Instruct
+   - Larger models may provide slightly better accuracy for complex queries
+   - For this specific task (furniture query parsing), the smaller model provides excellent results
+   - The performance tradeoff (3+ minutes vs 4-5 seconds) heavily favors the smaller model
 
 For production deployment, consider:
 - Fine-tuning the model on domain-specific data for better accuracy
